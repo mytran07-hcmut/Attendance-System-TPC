@@ -6,7 +6,26 @@ export const routes: Routes = [
         path: '',
         component: AppLayout,
         children: [
-            // Sau này bạn sẽ đưa các trang con (Dashboard, User,...) vào đây
+            {
+                path: 'admin/dashboard',
+                loadComponent: () => import('./pages/admin/dashboard/dashboard').then((m) => m.Dashboard)
+            },
+            {
+                path: 'hr/dashboard',
+                loadComponent: () => import('./pages/hr/dashboard/dashboard').then((m) => m.Dashboard)
+            },
+            {
+                path: 'employee/dashboard',
+                loadComponent: () => import('./pages/employee/dashboard/dashboard').then((m) => m.Dashboard)
+            }
         ]
+    },
+    {
+        path: 'login',
+        loadComponent: () => import('./pages/auth/login/login').then((m) => m.Login)
+    },
+    {
+        path: 'forgot-password',
+        loadComponent: () => import('./pages/auth/forgot-password/forgot-password').then((m) => m.ForgotPassword)
     }
 ];
