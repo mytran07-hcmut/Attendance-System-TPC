@@ -1,5 +1,5 @@
-import { Component, computed, effect, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, computed, effect, inject, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { AppTopbar } from './app.topbar';
 import { AppSidebar } from './app.sidebar';
@@ -24,14 +24,17 @@ import { LayoutService } from '../service/layout.service';
 })
 export class AppLayout {
     layoutService = inject(LayoutService);
+    platformId = inject(PLATFORM_ID);
 
     constructor() {
         effect(() => {
             const state = this.layoutService.layoutState();
-            if (state.mobileMenuActive) {
-                document.body.classList.add('blocked-scroll');
-            } else {
-                document.body.classList.remove('blocked-scroll');
+            if (isPlatformBrowser(this.platformId)) {
+                if (state.mobileMenuActive) {
+                    document.body.classList.add('blocked-scroll');
+                } else {
+                    document.body.classList.remove('blocked-scroll');
+                }
             }
         });
     }
