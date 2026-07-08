@@ -1,0 +1,101 @@
+<p-toast></p-toast>
+<div class="card">
+    <h5>Tạo lịch đi làm tháng {{ currentMonth | date:'MM/yyyy' }}</h5>
+    <p-steps [model]="items" [(activeIndex)]="activeIndex" [readonly]="false" class="mb-5"></p-steps>
+
+    <!-- STEP 1 -->
+    <div *ngIf="activeIndex === 0" class="p-fluid max-w-30rem mx-auto">
+        <div class="field">
+            <label class="font-bold">Chọn phương án tạo lịch</label>
+            <p-select [options]="options" [(ngModel)]="selectedOption" optionLabel="label" optionValue="value" styleClass="w-full"></p-select>
+        </div>
+        
+        <div class="field" *ngIf="selectedOption === 2">
+            <label class="font-bold">Chọn phòng ban</label>
+            <p-select [options]="departments" [(ngModel)]="selectedDepartment" optionLabel="name" placeholder="Chọn phòng ban..." styleClass="w-full"></p-select>
+        </div>
+
+        <div class="field" *ngIf="selectedOption === 3">
+            <label class="font-bold">Chọn nhân viên</label>
+            <p-select [options]="employees" [(ngModel)]="selectedEmployee" optionLabel="name" placeholder="Chọn nhân viên..." styleClass="w-full"></p-select>
+        </div>
+
+        <div class="flex justify-content-end mt-4">
+            <button pButton label="Tiếp tục" icon="pi pi-arrow-right" iconPos="right" (click)="next()"></button>
+        </div>
+    </div>
+
+    <!-- STEP 2 -->
+    <div *ngIf="activeIndex === 1" class="p-fluid max-w-30rem mx-auto">
+        <div class="field" *ngIf="selectedOption === 1">
+            <label class="font-bold">Thiết lập mặc định (Toàn công ty)</label>
+            <div class="flex align-items-center mb-2 mt-2">
+                <p-checkbox [binary]="true" [ngModel]="true" inputId="cb1"></p-checkbox>
+                <label for="cb1" class="ml-2">Tự động gán Hành chính (HC) từ T2 - T6</label>
+            </div>
+            <div class="flex align-items-center mb-2">
+                <p-checkbox [binary]="true" [ngModel]="true" inputId="cb2"></p-checkbox>
+                <label for="cb2" class="ml-2">Tự động gán Nghỉ (OFF) cho T7, CN</label>
+            </div>
+        </div>
+
+        <div class="field" *ngIf="selectedOption === 2">
+            <label class="font-bold">Trích quyền cho Trưởng phòng</label>
+            <div class="p-3 bg-blue-50 text-blue-900 border-round mt-2">
+                Hệ thống sẽ tạo khung lịch trống cho <b>{{selectedDepartment?.name || 'Phòng ban'}}</b>. Trưởng phòng ban sẽ nhận được thông báo yêu cầu điền lịch (HC/OFF/L) cho nhân viên của mình. <br><br>
+                Trạng thái trên Dashboard của HR sẽ hiển thị: <b>Đang chờ Trưởng phòng điền</b>.
+            </div>
+        </div>
+
+        <div class="field" *ngIf="selectedOption === 3">
+            <label class="font-bold">Trích quyền cho Nhân viên tự điền</label>
+            <div class="p-3 bg-orange-50 text-orange-900 border-round mt-2">
+                Hệ thống sẽ tạo khung lịch trống cho <b>{{selectedEmployee?.name || 'Nhân viên'}}</b>. Nhân viên này sẽ nhận được thông báo yêu cầu tự điền lịch đặc biệt. Lịch này sau đó cần được Trưởng phòng (hoặc HR) duyệt lại.
+            </div>
+        </div>
+
+        <div class="flex justify-content-between mt-4">
+            <button pButton label="Quay lại" icon="pi pi-arrow-left" class="p-button-secondary" (click)="prev()"></button>
+            <button pButton label="Tiếp tục" icon="pi pi-arrow-right" iconPos="right" (click)="next()"></button>
+        </div>
+    </div>
+
+    <!-- STEP 3 -->
+    <div *ngIf="activeIndex === 2">
+        <div class="flex flex-column align-items-center mb-4">
+            <h5 class="m-0">Bản xem trước Lịch làm việc</h5>
+            <span class="text-500 text-sm mt-1">
+                <span *ngIf="selectedOption === 1">Sẽ tự động điền HC và OFF cho toàn bộ nhân viên.</span>
+                <span *ngIf="selectedOption === 2">Trạng thái (?) là các ngày đang chờ Trưởng phòng <b>{{selectedDepartment?.name}}</b> điền.</span>
+                <span *ngIf="selectedOption === 3">Trạng thái (?) là các ngày đang chờ <b>{{selectedEmployee?.name}}</b> tự điền.</span>
+            </span>
+        </div>
+
+        <!-- Custom Calendar Grid -->
+        <div class="max-w-40rem mx-auto border-round overflow-hidden" style="border: 1px solid var(--surface-d)">
+            <div class="flex bg-primary text-primary-contrast p-2">
+                <div class="flex-1 text-center font-bold" *ngFor="let day of weekDays">{{day}}</div>
+            </div>
+            <div class="flex flex-wrap">
+                <div *ngFor="let cell of monthDays" class="flex flex-column p-2 border-right-1 border-bottom-1 border-300" style="width: 14.28%; height: 80px;" [ngClass]="{'bg-surface-100': cell.isWeekend}">
+                    <div class="text-right text-500 font-bold text-sm">{{cell.date}}</div>
+                    <div *ngIf="cell.date" class="mt-auto text-center">
+                        <span class="p-1 border-round text-sm font-bold" 
+                            [ngClass]="{
+                                'bg-green-100 text-green-700': cell.type === 'HC',
+                                'bg-gray-200 text-gray-700': cell.type === 'OFF',
+                                'bg-yellow-100 text-yellow-700': cell.type === '?'
+                            }">
+                            {{cell.type}}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex justify-content-between mt-5 max-w-40rem mx-auto">
+            <button pButton label="Quay lại" icon="pi pi-arrow-left" class="p-button-secondary" (click)="prev()"></button>
+            <button pButton label="Đăng lịch & Gửi thông báo" icon="pi pi-check" class="p-button-success" (click)="publish()"></button>
+        </div>
+    </div>
+</div>

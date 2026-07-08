@@ -1,4 +1,5 @@
-import { Injectable, effect, signal, computed } from '@angular/core';
+import { Injectable, effect, signal, computed, inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 
 export interface LayoutConfig {
     preset: string;
@@ -21,6 +22,8 @@ interface LayoutState {
     providedIn: 'root'
 })
 export class LayoutService {
+    platformId = inject(PLATFORM_ID);
+
     layoutConfig = signal<LayoutConfig>({
         preset: 'Aura',
         primary: 'emerald',
@@ -68,6 +71,7 @@ export class LayoutService {
     }
 
     private handleDarkModeTransition(config: LayoutConfig): void {
+        if (!isPlatformBrowser(this.platformId)) return;
         const supportsViewTransition = 'startViewTransition' in document;
 
         if (supportsViewTransition) {
@@ -78,12 +82,14 @@ export class LayoutService {
     }
 
     private startViewTransition(config: LayoutConfig): void {
-        document.startViewTransition(() => {
+        if (!isPlatformBrowser(this.platformId)) return;
+        (document as any).startViewTransition(() => {
             this.toggleDarkMode(config);
         });
     }
 
     toggleDarkMode(config?: LayoutConfig): void {
+        if (!isPlatformBrowser(this.platformId)) return;
         const _config = config || this.layoutConfig();
         if (_config.darkTheme) {
             document.documentElement.classList.add('app-dark');
@@ -113,6 +119,7 @@ export class LayoutService {
     }
 
     isDesktop() {
+        if (!isPlatformBrowser(this.platformId)) return true;
         return window.innerWidth > 991;
     }
 

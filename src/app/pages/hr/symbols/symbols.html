@@ -1,0 +1,54 @@
+<div class="card">
+    <div class="flex justify-content-between align-items-center mb-5">
+        <h5>Quản lý bộ ký hiệu công</h5>
+        <div>
+            <button pButton pRipple label="Thêm ký hiệu" icon="pi pi-plus" class="p-button-success mr-2" (click)="showDialogToAdd()"></button>
+            <button pButton pRipple label="Khôi phục mặc định" icon="pi pi-refresh" class="p-button-secondary" (click)="resetDefault()"></button>
+        </div>
+    </div>
+
+    <p-table [value]="symbols" responsiveLayout="scroll">
+        <ng-template pTemplate="header">
+            <tr>
+                <th>Ký hiệu (Code)</th>
+                <th>Ý nghĩa (Name)</th>
+                <th>Màu sắc (Color)</th>
+                <th>Thao tác</th>
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-symbol>
+            <tr>
+                <td class="font-bold">{{symbol.code}}</td>
+                <td>{{symbol.name}}</td>
+                <td>
+                    <p-tag [value]="symbol.code" [style]="{'background-color': symbol.color}"></p-tag>
+                </td>
+                <td>
+                    <button pButton pRipple icon="pi pi-pencil" class="p-button-rounded p-button-info p-button-text mr-2" (click)="showDialogToEdit(symbol)"></button>
+                    <button pButton pRipple icon="pi pi-trash" class="p-button-rounded p-button-danger p-button-text" (click)="delete(symbol)"></button>
+                </td>
+            </tr>
+        </ng-template>
+    </p-table>
+</div>
+
+<p-dialog header="{{isEdit ? 'Sửa ký hiệu' : 'Thêm ký hiệu'}}" [(visible)]="displayDialog" [modal]="true" showEffect="fade" [style]="{width: '400px'}" [breakpoints]="{'960px': '75vw'}">
+    <div class="p-fluid">
+        <div class="field">
+            <label for="code">Ký hiệu (vd: HC)</label>
+            <input pInputText id="code" [(ngModel)]="symbol.code" [disabled]="isEdit" />
+        </div>
+        <div class="field">
+            <label for="name">Ý nghĩa</label>
+            <input pInputText id="name" [(ngModel)]="symbol.name" />
+        </div>
+        <div class="field">
+            <label for="color" class="block">Màu hiển thị</label>
+            <p-colorPicker [(ngModel)]="symbol.color"></p-colorPicker>
+        </div>
+    </div>
+    <ng-template pTemplate="footer">
+        <button pButton pRipple label="Hủy" icon="pi pi-times" class="p-button-text" (click)="displayDialog=false"></button>
+        <button pButton pRipple label="Lưu" icon="pi pi-check" class="p-button-text" (click)="save()"></button>
+    </ng-template>
+</p-dialog>
