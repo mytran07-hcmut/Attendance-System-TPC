@@ -22,11 +22,11 @@ import { AuthService } from '../../core/services/auth';
 export class AppMenu implements OnInit {
     model: MenuItem[] = [];
 
-    constructor(private authService: AuthService) {}
+    constructor(private authService: AuthService) { }
 
     ngOnInit() {
         const role = this.authService.getRole();
-        
+
         if (role === 'hr') {
             this.model = [
                 {
@@ -34,7 +34,7 @@ export class AppMenu implements OnInit {
                     items: [
                         { label: 'Dashboard', icon: 'pi pi-fw pi-home', routerLink: ['/hr/dashboard'] },
                         { label: 'Quản lý ký hiệu', icon: 'pi pi-fw pi-tags', routerLink: ['/hr/symbols'] },
-                        { label: 'Tạo lịch đi làm', icon: 'pi pi-fw pi-calendar-plus', routerLink: ['/hr/schedule'] },
+                        { label: 'Lịch', icon: 'pi pi-fw pi-calendar-plus', routerLink: ['/hr/schedule'] },
                         { label: 'Chốt công & Báo cáo', icon: 'pi pi-fw pi-chart-bar', routerLink: ['/hr/reports'] }
                     ]
                 }
