@@ -1,12 +1,17 @@
 <div class="grid">
+    <div class="col-12 flex justify-content-end mb-1 mt-2">
+        <button pButton pRipple label="Tạo Lịch Làm Việc" icon="pi pi-calendar-plus"
+            class="p-button-primary p-button-lg shadow-4 font-bold border-round-2xl" routerLink="/hr/schedule"></button>
+    </div>
     <div class="col-12 lg:col-6 xl:col-3">
-        <div class="card mb-0">
+        <div class="card mb-0 cursor-pointer hover:shadow-4 transition-duration-200" (click)="scrollToPending()">
             <div class="flex justify-content-between mb-3">
                 <div>
-                    <span class="block text-500 font-medium mb-3">Yêu cầu chờ duyệt</span>
-                    <div class="text-900 font-bold text-xl">15</div>
+                    <span class="block text-700 font-bold text-lg mb-3">Yêu cầu chờ duyệt</span>
+                    <div class="text-900 font-bold text-2xl">15</div>
                 </div>
-                <div class="flex align-items-center justify-content-center bg-blue-100 border-round" style="width:2.5rem;height:2.5rem">
+                <div class="flex align-items-center justify-content-center bg-blue-100 border-round"
+                    style="width:2.5rem;height:2.5rem">
                     <i class="pi pi-file-edit text-blue-500 text-xl"></i>
                 </div>
             </div>
@@ -15,28 +20,30 @@
         </div>
     </div>
     <div class="col-12 lg:col-6 xl:col-3">
-        <div class="card mb-0">
+        <div class="card mb-0 cursor-pointer hover:shadow-4 transition-duration-200" (click)="showPresentList()">
             <div class="flex justify-content-between mb-3">
                 <div>
-                    <span class="block text-500 font-medium mb-3">Nhân sự đi làm</span>
-                    <div class="text-900 font-bold text-xl">120/125</div>
+                    <span class="block text-700 font-bold text-lg mb-3">Nhân sự đi làm</span>
+                    <div class="text-900 font-bold text-2xl">120/125</div>
                 </div>
-                <div class="flex align-items-center justify-content-center bg-orange-100 border-round" style="width:2.5rem;height:2.5rem">
+                <div class="flex align-items-center justify-content-center bg-orange-100 border-round"
+                    style="width:2.5rem;height:2.5rem">
                     <i class="pi pi-users text-orange-500 text-xl"></i>
                 </div>
             </div>
-            <span class="text-green-500 font-medium">%96 </span>
+            <span class="text-green-500 font-medium">96% </span>
             <span class="text-500">tỷ lệ đi làm</span>
         </div>
     </div>
     <div class="col-12 lg:col-6 xl:col-3">
-        <div class="card mb-0">
+        <div class="card mb-0 cursor-pointer hover:shadow-4 transition-duration-200" (click)="showAbsentList()">
             <div class="flex justify-content-between mb-3">
                 <div>
-                    <span class="block text-500 font-medium mb-3">Nghỉ phép/Vắng</span>
-                    <div class="text-900 font-bold text-xl">5</div>
+                    <span class="block text-700 font-bold text-lg mb-3">Nghỉ phép/Vắng</span>
+                    <div class="text-900 font-bold text-2xl">5</div>
                 </div>
-                <div class="flex align-items-center justify-content-center bg-cyan-100 border-round" style="width:2.5rem;height:2.5rem">
+                <div class="flex align-items-center justify-content-center bg-cyan-100 border-round"
+                    style="width:2.5rem;height:2.5rem">
                     <i class="pi pi-calendar-times text-cyan-500 text-xl"></i>
                 </div>
             </div>
@@ -45,13 +52,14 @@
         </div>
     </div>
     <div class="col-12 lg:col-6 xl:col-3">
-        <div class="card mb-0">
+        <div class="card mb-0 cursor-pointer hover:shadow-4 transition-duration-200" routerLink="/hr/reports">
             <div class="flex justify-content-between mb-3">
                 <div>
-                    <span class="block text-500 font-medium mb-3">Báo cáo tháng</span>
-                    <div class="text-900 font-bold text-xl">Chưa chốt</div>
+                    <span class="block text-700 font-bold text-lg mb-3">Báo cáo tháng</span>
+                    <div class="text-900 font-bold text-2xl">Chưa chốt</div>
                 </div>
-                <div class="flex align-items-center justify-content-center bg-purple-100 border-round" style="width:2.5rem;height:2.5rem">
+                <div class="flex align-items-center justify-content-center bg-purple-100 border-round"
+                    style="width:2.5rem;height:2.5rem">
                     <i class="pi pi-check-square text-purple-500 text-xl"></i>
                 </div>
             </div>
@@ -60,32 +68,50 @@
         </div>
     </div>
 
-    <div class="col-12">
+    <div class="col-12" id="pending-requests-section">
         <div class="card">
             <h5>Lịch đặc biệt cần duyệt (Pending Approvals)</h5>
-            <p-table [value]="pendingRequests" [rows]="5" [paginator]="true" responsiveLayout="scroll">
+            <p-table #dt [value]="pendingRequests" [rows]="5" [paginator]="true" responsiveLayout="scroll" [globalFilterFields]="['employee', 'department', 'type']">
+                <ng-template pTemplate="caption">
+                    <div class="flex justify-content-between align-items-center">
+                        <span class="font-medium text-lg">Danh sách đơn chờ duyệt</span>
+                        <p-iconfield iconPosition="left">
+                            <p-inputicon styleClass="pi pi-search"></p-inputicon>
+                            <input pInputText #searchInput type="text" (input)="dt.filterGlobal(searchInput.value, 'contains')" placeholder="Tìm nhân viên, phòng ban..." style="width: 350px;" class="max-w-full" />
+                        </p-iconfield>
+                    </div>
+                </ng-template>
                 <ng-template pTemplate="header">
                     <tr>
                         <th>Nhân viên</th>
                         <th>Phòng ban</th>
                         <th>Loại lịch</th>
                         <th>Ngày</th>
-                        <th>Trạng thái</th>
-                        <th>Thao tác</th>
+                        <th class="text-center">Trạng thái</th>
+                        <th class="text-center">Thao tác</th>
                     </tr>
                 </ng-template>
                 <ng-template pTemplate="body" let-request>
-                    <tr>
+                    <tr class="cursor-pointer hover:surface-100 transition-duration-150" (click)="showDialog(request)">
                         <td>{{request.employee}}</td>
                         <td>{{request.department}}</td>
                         <td>{{request.type}}</td>
                         <td>{{request.date}}</td>
-                        <td>
-                            <p-tag [severity]="request.status === 'Chờ duyệt' ? 'warning' : (request.status === 'Đã duyệt' ? 'success' : 'danger')" [value]="request.status"></p-tag>
+                        <td class="text-center">
+                            <p-tag *ngIf="request.status === 'Chờ duyệt'" [value]="request.status"
+                                styleClass="bg-yellow-100 text-yellow-800 font-bold border-1 border-yellow-300"></p-tag>
+                            <p-tag *ngIf=" request.status==='Đã duyệt'" [value]=" request.status"
+                                severity="success"></p-tag>
+                            <p-tag *ngIf="request.status === 'Từ chối'" [value]="request.status"
+                                severity="danger"></p-tag>
                         </td>
-                        <td>
-                            <button *ngIf="request.status === 'Chờ duyệt'" pButton pRipple type="button" icon="pi pi-check" class="p-button-rounded p-button-success p-button-text mr-2" (click)="approve(request)" title="Duyệt"></button>
-                            <button *ngIf="request.status === 'Chờ duyệt'" pButton pRipple type="button" icon="pi pi-times" class="p-button-rounded p-button-danger p-button-text" (click)="reject(request)" title="Từ chối"></button>
+                        <td class="text-center">
+                            <button *ngIf="request.status === 'Chờ duyệt'" pButton pRipple type="button"
+                                icon="pi pi-check" class="p-button-rounded p-button-success p-button-text mr-2"
+                                (click)="approve(request); $event.stopPropagation()" pTooltip="Duyệt"></button>
+                            <button *ngIf="request.status === 'Chờ duyệt'" pButton pRipple type="button"
+                                icon="pi pi-times" class="p-button-rounded p-button-danger p-button-text"
+                                (click)="reject(request); $event.stopPropagation()" pTooltip="Từ chối"></button>
                         </td>
                     </tr>
                 </ng-template>
@@ -93,3 +119,81 @@
         </div>
     </div>
 </div>
+
+<p-dialog header="Chi tiết đơn xin nghỉ/duyệt" [(visible)]="displayDialog" [modal]="true" [style]="{width: '450px'}"
+    [draggable]="false" [resizable]="false" styleClass="p-fluid">
+    <div *ngIf="selectedRequest" class="flex flex-column gap-3 p-4">
+        <div class="flex align-items-center justify-content-between border-bottom-1 surface-border pb-2">
+            <span class="font-semibold text-700">Nhân viên:</span>
+            <span class="text-900 font-medium text-lg">{{selectedRequest.employee}}</span>
+        </div>
+        <div class="flex align-items-center justify-content-between border-bottom-1 surface-border pb-2">
+            <span class="font-semibold text-700">Phòng ban:</span>
+            <span class="text-900">{{selectedRequest.department}}</span>
+        </div>
+        <div class="flex align-items-center justify-content-between border-bottom-1 surface-border pb-2">
+            <span class="font-semibold text-700">Loại đơn:</span>
+            <span class="text-900">{{selectedRequest.type}}</span>
+        </div>
+        <div class="flex align-items-center justify-content-between border-bottom-1 surface-border pb-2">
+            <span class="font-semibold text-700">Ngày:</span>
+            <span class="text-900 font-medium">{{selectedRequest.date}}</span>
+        </div>
+        <div class="flex flex-column gap-2 mt-2">
+            <span class="font-semibold text-700">Lý do:</span>
+            <div class="p-3 bg-gray-50 border-round-xl text-700 line-height-3 surface-border border-1 shadow-1">
+                {{selectedRequest.reason || 'Không có lý do'}}
+            </div>
+        </div>
+    </div>
+    <ng-template pTemplate="footer">
+        <div *ngIf="selectedRequest?.status === 'Chờ duyệt'" class="flex justify-content-end gap-2 w-full mt-3">
+            <button pButton pRipple label="Từ chối" icon="pi pi-times"
+                class="p-button-outlined p-button-danger border-round-xl" (click)="reject(selectedRequest)"></button>
+            <button pButton pRipple label="Duyệt đơn" icon="pi pi-check" class="p-button-success border-round-xl"
+                (click)="approve(selectedRequest)"></button>
+        </div>
+    </ng-template>
+</p-dialog>
+
+<p-dialog header="Danh sách nhân sự đi làm hôm nay" [(visible)]="displayPresentDialog" [modal]="true" [style]="{width: '600px'}" [draggable]="false" [resizable]="false">
+    <p-table [value]="presentEmployees" [rows]="5" [paginator]="true" responsiveLayout="scroll">
+        <ng-template pTemplate="header">
+            <tr>
+                <th>Tên nhân viên</th>
+                <th>Phòng ban</th>
+                <th>Giờ Check-in</th>
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-employee>
+            <tr>
+                <td>{{employee.name}}</td>
+                <td>{{employee.department}}</td>
+                <td><p-tag severity="success" [value]="employee.checkInTime"></p-tag></td>
+            </tr>
+        </ng-template>
+    </p-table>
+</p-dialog>
+
+<p-dialog header="Danh sách nhân sự vắng mặt hôm nay" [(visible)]="displayAbsentDialog" [modal]="true" [style]="{width: '700px'}" [draggable]="false" [resizable]="false">
+    <p-table [value]="absentEmployees" [rows]="5" [paginator]="true" responsiveLayout="scroll">
+        <ng-template pTemplate="header">
+            <tr>
+                <th>Tên nhân viên</th>
+                <th>Phòng ban</th>
+                <th>Loại vắng</th>
+                <th>Lý do</th>
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-employee>
+            <tr>
+                <td>{{employee.name}}</td>
+                <td>{{employee.department}}</td>
+                <td>
+                    <p-tag [severity]="employee.type === 'Có phép' ? 'info' : 'danger'" [value]="employee.type"></p-tag>
+                </td>
+                <td>{{employee.reason}}</td>
+            </tr>
+        </ng-template>
+    </p-table>
+</p-dialog>
