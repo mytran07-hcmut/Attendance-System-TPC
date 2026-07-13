@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { StepsModule } from 'primeng/steps';
 import { SelectModule } from 'primeng/select';
@@ -21,7 +22,7 @@ import { InputTextModule } from 'primeng/inputtext';
   templateUrl: './schedule.html',
   styleUrl: './schedule.scss'
 })
-export class Schedule {
+export class Schedule implements OnInit {
   items: MenuItem[] = [
     { label: 'Chọn đối tượng' },
     { label: 'Thiết lập & Phân quyền' },
@@ -75,8 +76,17 @@ export class Schedule {
   monthDays: any[] = [];
   weekDays = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
 
-  constructor(private messageService: MessageService) {
+  constructor(private messageService: MessageService, private route: ActivatedRoute) {
     this.generateCalendar();
+  }
+
+  ngOnInit() {
+    this.route.queryParams.subscribe(params => {
+      if (params['action'] === 'create') {
+        this.viewState = 'wizard';
+        this.activeIndex = 0;
+      }
+    });
   }
 
   openEditDialog(cell: any) {

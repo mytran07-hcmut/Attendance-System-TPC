@@ -1,7 +1,7 @@
 <div class="grid">
     <div class="col-12 flex justify-content-end mb-1 mt-2">
         <button pButton pRipple label="Tạo Lịch Làm Việc" icon="pi pi-calendar-plus"
-            class="p-button-primary p-button-lg shadow-4 font-bold border-round-2xl" routerLink="/hr/schedule"></button>
+            class="p-button-primary p-button-lg shadow-4 font-bold border-round-2xl" routerLink="/hr/schedule" [queryParams]="{action: 'create'}"></button>
     </div>
     <div class="col-12 lg:col-6 xl:col-3">
         <div class="card mb-0 cursor-pointer hover:shadow-4 transition-duration-200" (click)="scrollToPending()">
@@ -39,7 +39,7 @@
         <div class="card mb-0 cursor-pointer hover:shadow-4 transition-duration-200" (click)="showAbsentList()">
             <div class="flex justify-content-between mb-3">
                 <div>
-                    <span class="block text-700 font-bold text-lg mb-3">Nghỉ phép/Vắng</span>
+                    <span class="block text-700 font-bold text-lg mb-3">Nghỉ phép</span>
                     <div class="text-900 font-bold text-2xl">5</div>
                 </div>
                 <div class="flex align-items-center justify-content-center bg-cyan-100 border-round"
@@ -71,13 +71,16 @@
     <div class="col-12" id="pending-requests-section">
         <div class="card">
             <h5>Lịch đặc biệt cần duyệt (Pending Approvals)</h5>
-            <p-table #dt [value]="pendingRequests" [rows]="5" [paginator]="true" responsiveLayout="scroll" [globalFilterFields]="['employee', 'department', 'type']">
+            <p-table #dt [value]="pendingRequests" [rows]="5" [paginator]="true" responsiveLayout="scroll"
+                [globalFilterFields]="['employee', 'department', 'type']">
                 <ng-template pTemplate="caption">
                     <div class="flex justify-content-between align-items-center">
                         <span class="font-medium text-lg">Danh sách đơn chờ duyệt</span>
                         <p-iconfield iconPosition="left">
                             <p-inputicon styleClass="pi pi-search"></p-inputicon>
-                            <input pInputText #searchInput type="text" (input)="dt.filterGlobal(searchInput.value, 'contains')" placeholder="Tìm nhân viên, phòng ban..." style="width: 350px;" class="max-w-full" />
+                            <input pInputText #searchInput type="text"
+                                (input)="dt.filterGlobal(searchInput.value, 'contains')"
+                                placeholder="Tìm nhân viên, phòng ban..." style="width: 350px;" class="max-w-full" />
                         </p-iconfield>
                     </div>
                 </ng-template>
@@ -156,7 +159,8 @@
     </ng-template>
 </p-dialog>
 
-<p-dialog header="Danh sách nhân sự đi làm hôm nay" [(visible)]="displayPresentDialog" [modal]="true" [style]="{width: '600px'}" [draggable]="false" [resizable]="false">
+<p-dialog header="Danh sách nhân sự đi làm hôm nay" [(visible)]="displayPresentDialog" [modal]="true"
+    [style]="{width: '600px'}" [draggable]="false" [resizable]="false">
     <p-table [value]="presentEmployees" [rows]="5" [paginator]="true" responsiveLayout="scroll">
         <ng-template pTemplate="header">
             <tr>
@@ -175,7 +179,8 @@
     </p-table>
 </p-dialog>
 
-<p-dialog header="Danh sách nhân sự vắng mặt hôm nay" [(visible)]="displayAbsentDialog" [modal]="true" [style]="{width: '700px'}" [draggable]="false" [resizable]="false">
+<p-dialog header="Danh sách nhân sự vắng mặt hôm nay" [(visible)]="displayAbsentDialog" [modal]="true"
+    [style]="{width: '700px'}" [draggable]="false" [resizable]="false">
     <p-table [value]="absentEmployees" [rows]="5" [paginator]="true" responsiveLayout="scroll">
         <ng-template pTemplate="header">
             <tr>

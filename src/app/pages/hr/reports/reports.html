@@ -1,11 +1,16 @@
+<p-toast></p-toast>
+<p-confirmDialog></p-confirmDialog>
+
 <div class="card">
     <h5>Chốt công & Xuất báo cáo (Tháng hiện tại)</h5>
     <p-toolbar styleClass="mb-4 gap-2">
         <ng-template pTemplate="left">
-            <button pButton pRipple label="Khóa sổ tháng" icon="pi pi-lock" class="p-button-danger mr-2"></button>
+            <button pButton pRipple label="Khóa sổ tháng" icon="pi pi-lock" class="p-button-danger mr-2"
+                (click)="confirmLock()"></button>
         </ng-template>
         <ng-template pTemplate="right">
-            <button pButton pRipple label="Xuất Excel" icon="pi pi-file-excel" class="p-button-success" (click)="exportExcel()"></button>
+            <button pButton pRipple label="Xuất báo cáo" icon="pi pi-file-excel" class="p-button-primary"
+                (click)="exportExcel()"></button>
         </ng-template>
     </p-toolbar>
 
@@ -14,23 +19,77 @@
             <tr>
                 <th>Nhân viên</th>
                 <th>Phòng ban</th>
-                <th>Tổng Hành chính (HC)</th>
-                <th>Tổng Nghỉ (OFF)</th>
-                <th>Tổng Phép (L)</th>
-                <th>Trạng thái dữ liệu</th>
+                <th class="text-center">Tổng Hành chính (HC)</th>
+                <th class="text-center">Tổng Nghỉ (OFF)</th>
+                <th class="text-center">Tổng Phép (AL)</th>
+                <th class="text-center">Trạng thái dữ liệu</th>
             </tr>
         </ng-template>
         <ng-template pTemplate="body" let-report>
-            <tr>
-                <td class="font-bold">{{report.employee}}</td>
+            <tr class="cursor-pointer hover:surface-100 transition-colors transition-duration-150"
+                (click)="viewEmployeeDetails(report)">
+                <td class="font-bold">
+                    {{report.employee}}
+                </td>
                 <td>{{report.department}}</td>
-                <td>{{report.totalHC}}</td>
-                <td>{{report.totalOFF}}</td>
-                <td>{{report.totalL}}</td>
-                <td>
-                    <p-tag [severity]="report.status === 'Đủ công' ? 'success' : 'danger'" [value]="report.status"></p-tag>
+                <td class="text-center">{{report.totalHC}}</td>
+                <td class="text-center">{{report.totalOFF}}</td>
+                <td class="text-center">{{report.totalL}}</td>
+                <td class="text-center">
+                    <p-tag [severity]="report.status === 'Đủ công' ? 'success' : 'danger'"
+                        [value]="report.status"></p-tag>
                 </td>
             </tr>
         </ng-template>
     </p-table>
 </div>
+
+<!-- Employee Details Dialog -->
+<p-dialog [header]="'Chi tiết lịch làm việc - ' + (selectedEmployee?.employee || '')"
+    [(visible)]="displayEmployeeDetails" [modal]="true" [style]="{width: '70vw'}" [maximizable]="true">
+    <div class="p-4">
+        <div class="flex align-items-center mb-4">
+            <i class="pi pi-user mr-3 text-4xl text-primary"></i>
+            <div>
+                <h3 class="m-0">{{selectedEmployee?.employee}}</h3>
+                <span class="text-600">{{selectedEmployee?.department}}</span>
+            </div>
+        </div>
+
+        <div class="w-full border-round overflow-hidden mt-4" style="border: 1px solid var(--surface-d)">
+            <div class="flex bg-primary text-white p-3">
+                <div class="flex-1 text-center font-bold" *ngFor="let day of weekDays">{{day}}</div>
+            </div>
+            <div class="flex flex-wrap">
+                <div *ngFor="let cell of employeeSchedule"
+                    class="flex flex-column p-2 border-right-1 border-bottom-1 border-300"
+                    style="width: 14.28%; height: 100px;" [ngClass]="{'bg-surface-100': cell.isWeekend}">
+
+                    <div class="text-right text-600 font-bold text-sm">{{cell.date}}</div>
+
+                    <div class="flex-grow-1 flex align-items-center justify-content-center overflow-hidden px-1">
+                        <div *ngIf="cell.type === 'L' && cell.holidayName"
+                            class="text-sm text-600 text-center font-italic text-overflow-ellipsis overflow-hidden white-space-nowrap"
+                            style="max-width: 100%;">
+                            {{cell.holidayName}}
+                        </div>
+                    </div>
+
+                    <div *ngIf="cell.date" class="mt-auto text-center mb-2">
+                        <span class="px-2 py-1 border-round text-sm font-bold border-1 border-400 block w-max mx-auto"
+                            [ngStyle]="{
+                                'background-color': getSymbolColor(cell.type),
+                                'color': '#333'
+                            }">
+                            {{cell.type}}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <ng-template pTemplate="footer">
+        <button pButton pRipple label="Đóng" icon="pi pi-times" class="p-button-text"
+            (click)="displayEmployeeDetails = false"></button>
+    </ng-template>
+</p-dialog>
