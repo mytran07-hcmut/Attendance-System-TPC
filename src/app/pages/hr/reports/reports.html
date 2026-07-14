@@ -14,7 +14,15 @@
         </ng-template>
     </p-toolbar>
 
-    <p-table [value]="reports" [rows]="10" [paginator]="true" responsiveLayout="scroll">
+    <div class="flex justify-content-end mb-3">
+        <span class="p-input-icon-right" style="width: 300px;">
+            <input pInputText type="text" class="w-full" #searchInput
+                (input)="dt.filterGlobal(searchInput.value, 'contains')" placeholder="Tìm tên nhân viên..." />
+        </span>
+    </div>
+
+    <p-table #dt [value]="reports" [rows]="10" [paginator]="true" responsiveLayout="scroll"
+        [globalFilterFields]="['employee']">
         <ng-template pTemplate="header">
             <tr>
                 <th>Nhân viên</th>
@@ -22,7 +30,9 @@
                 <th class="text-center">Tổng Hành chính (HC)</th>
                 <th class="text-center">Tổng Nghỉ (OFF)</th>
                 <th class="text-center">Tổng Phép (AL)</th>
-                <th class="text-center">Trạng thái dữ liệu</th>
+                <th class="text-center" pSortableColumn="status">
+                    Trạng thái dữ liệu <p-sortIcon field="status"></p-sortIcon>
+                </th>
             </tr>
         </ng-template>
         <ng-template pTemplate="body" let-report>

@@ -8,11 +8,12 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DialogModule } from 'primeng/dialog';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
+import { InputTextModule } from 'primeng/inputtext';
 
 @Component({
   selector: 'app-hr-reports',
   standalone: true,
-  imports: [CommonModule, TableModule, ButtonModule, ToolbarModule, TagModule, ConfirmDialogModule, DialogModule, ToastModule],
+  imports: [CommonModule, TableModule, ButtonModule, ToolbarModule, TagModule, ConfirmDialogModule, DialogModule, ToastModule, InputTextModule],
   providers: [ConfirmationService, MessageService],
   templateUrl: './reports.html',
   styleUrl: './reports.scss'
