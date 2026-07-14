@@ -1,0 +1,85 @@
+<div class="card">
+    <div class="flex flex-column md:flex-row justify-content-between align-items-start mb-5 gap-4">
+        <div>
+            <h4 class="m-0 mb-2 font-bold text-900">Lịch đi làm tháng {{ today | date:'MM/yyyy' }}</h4>
+            <span class="text-600">Dưới đây là lịch đi làm đã được HR phân bổ cho bạn trong tháng.</span>
+        </div>
+
+        <!-- Today's Info & Action -->
+        <div class="surface-50 border-round p-4 shadow-1" style="min-width: 300px;">
+            <div class="flex align-items-center mb-3">
+                <i class="pi pi-calendar text-2xl text-primary mr-3"></i>
+                <div>
+                    <span class="block text-500 mb-1">Hôm nay</span>
+                    <span class="block text-xl font-bold text-900">{{ today | date:'dd/MM/yyyy' }}</span>
+                </div>
+            </div>
+
+            <div *ngIf="!hasConfirmed" class="flex flex-column gap-2 mt-4">
+                <p class="m-0 mb-2 font-medium text-700 text-center">Bạn có đi làm hôm nay không?</p>
+                <div class="flex gap-2">
+                    <button pButton pRipple label="Có" icon="pi pi-check" class="p-button-primary flex-1"
+                        (click)="confirmAttendance()"></button>
+                    <button pButton pRipple label="Không" icon="pi pi-times" class="p-button-danger flex-1"
+                        (click)="declineAttendance()"></button>
+                </div>
+            </div>
+
+            <div *ngIf="hasConfirmed" class="mt-4 text-center">
+                <div *ngIf="attendanceStatus === 'present'"
+                    class="text-green-600 font-bold flex align-items-center justify-content-center gap-2">
+                    <i class="pi pi-check-circle text-2xl"></i>
+                    <span>Đã điểm danh đi làm thành công!</span>
+                </div>
+                <div *ngIf="attendanceStatus === 'absent'"
+                    class="text-orange-600 font-bold flex align-items-center justify-content-center gap-2">
+                    <i class="pi pi-exclamation-circle text-2xl"></i>
+                    <span>Đang chuyển hướng sang Đăng ký phép...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Calendar Grid -->
+    <div class="w-full border-round overflow-hidden" style="border: 1px solid var(--surface-d)">
+        <div class="flex bg-primary text-white p-3">
+            <div class="flex-1 text-center font-bold" *ngFor="let day of weekDays">{{day}}</div>
+        </div>
+        <div class="flex flex-wrap">
+            <div *ngFor="let cell of employeeSchedule"
+                class="flex flex-column p-2 border-right-1 border-bottom-1 border-300 relative"
+                style="width: 14.28%; height: 120px;" [ngClass]="{
+                    'bg-surface-100': cell.isWeekend,
+                    'border-primary border-3': cell.isToday
+                }">
+
+                <div *ngIf="cell.isToday"
+                    class="absolute top-0 right-0 bg-primary text-white text-xs px-2 py-1 border-round-bottom-left font-bold z-1 shadow-1">
+                    Hôm nay
+                </div>
+
+                <div class="text-right text-600 font-bold text-sm" [ngClass]="{'text-primary text-lg': cell.isToday}">
+                    {{cell.date}}
+                </div>
+
+                <div class="flex-grow-1 flex align-items-center justify-content-center overflow-hidden px-1">
+                    <div *ngIf="cell.type === 'L'"
+                        class="text-sm text-600 text-center font-italic text-overflow-ellipsis overflow-hidden white-space-nowrap"
+                        style="max-width: 100%;">
+                        Nghỉ Lễ
+                    </div>
+                </div>
+
+                <div *ngIf="cell.date" class="mt-auto text-center mb-2">
+                    <span class="px-2 py-1 border-round text-sm font-bold border-1 border-400 block w-max mx-auto"
+                        [ngStyle]="{
+                            'background-color': getSymbolColor(cell.type),
+                            'color': '#333'
+                        }">
+                        {{cell.type}}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

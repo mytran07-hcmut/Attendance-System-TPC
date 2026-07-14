@@ -25,10 +25,15 @@ export const routes: Routes = [
                 ]
             },
             {
-                path: 'employee/dashboard',
+                path: 'employee',
                 canActivate: [authGuard],
                 data: { role: 'employee' },
-                loadComponent: () => import('./pages/employee/dashboard/dashboard').then((m) => m.Dashboard)
+                children: [
+                    { path: '', redirectTo: 'attendance', pathMatch: 'full' },
+                    { path: 'attendance', loadComponent: () => import('./pages/employee/attendance/attendance').then((m) => m.Attendance) },
+                    { path: 'dashboard', loadComponent: () => import('./pages/employee/dashboard/dashboard').then((m) => m.Dashboard) },
+                    { path: 'leave', loadComponent: () => import('./pages/employee/leave/leave').then((m) => m.Leave) }
+                ]
             }
         ]
     },

@@ -1,0 +1,26 @@
+<p-toast></p-toast>
+<div class="card max-w-30rem mx-auto">
+    <h4 class="m-0 mb-4 font-bold text-900"><i class="pi pi-file-edit mr-2 text-primary"></i>Đăng ký nghỉ phép</h4>
+    
+    <div class="p-fluid">
+        <div class="field mb-4">
+            <label for="leaveType" class="font-medium">Loại phép <span class="text-red-500">*</span></label>
+            <p-select id="leaveType" [options]="leaveTypes" [(ngModel)]="selectedType" optionLabel="label" placeholder="Chọn loại phép" styleClass="w-full"></p-select>
+        </div>
+
+        <div class="field mb-4">
+            <label for="dateRange" class="font-medium">Thời gian nghỉ <span class="text-red-500">*</span></label>
+            <p-datepicker id="dateRange" [(ngModel)]="dateRange" selectionMode="range" [readonlyInput]="true" placeholder="Từ ngày - Đến ngày" styleClass="w-full"></p-datepicker>
+        </div>
+
+        <div class="field mb-5">
+            <label for="reason" class="font-medium">Lý do nghỉ <span class="text-red-500">*</span></label>
+            <textarea id="reason" pTextarea [(ngModel)]="reason" rows="4" placeholder="Nhập lý do xin nghỉ phép chi tiết..." class="w-full"></textarea>
+        </div>
+
+        <div class="flex gap-3">
+            <button pButton pRipple label="Gửi đơn" icon="pi pi-send" class="p-button-primary flex-1" (click)="submitLeaveRequest()"></button>
+            <button pButton pRipple label="Quay lại" icon="pi pi-arrow-left" class="p-button-secondary flex-1" [routerLink]="['/employee/attendance']"></button>
+        </div>
+    </div>
+</div>
