@@ -13,11 +13,12 @@ import { MessageService } from 'primeng/api';
 import { DatePickerModule } from 'primeng/datepicker';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
+import { TooltipModule } from 'primeng/tooltip';
 
 @Component({
   selector: 'app-hr-schedule',
   standalone: true,
-  imports: [CommonModule, StepsModule, SelectModule, CascadeSelectModule, ButtonModule, FormsModule, CheckboxModule, ToastModule, DatePickerModule, DialogModule, InputTextModule],
+  imports: [CommonModule, StepsModule, SelectModule, CascadeSelectModule, ButtonModule, FormsModule, CheckboxModule, ToastModule, DatePickerModule, DialogModule, InputTextModule, TooltipModule],
   providers: [MessageService],
   templateUrl: './schedule.html',
   styleUrl: './schedule.scss'
@@ -46,17 +47,20 @@ export class Schedule implements OnInit {
 
   scopeOptions = [
     { label: 'Toàn công ty', code: 'ALL' },
-    { 
-      label: 'Theo phòng ban', 
+    {
+      label: 'Theo phòng ban',
       code: 'DEP',
       items: [
         { label: 'Phòng IT', code: 'IT' },
         { label: 'Phòng Kế toán', code: 'ACC' },
         { label: 'Phòng Nhân sự', code: 'HR' }
       ]
-    }
+    },
+    { label: 'Nhân viên', code: 'EMP' }
   ];
   selectedScope: any = this.scopeOptions[0];
+  searchText: string = '';
+  searchedEmployee: string = '';
 
   options = [
     { label: 'Toàn công ty', value: 1 },
@@ -128,12 +132,28 @@ export class Schedule implements OnInit {
   }
 
   onMonthSelect() {
-    this.generateCalendar();
+    if (this.selectedScope?.code === 'EMP' && !this.searchedEmployee) {
+      this.monthDays = [];
+    } else {
+      this.generateCalendar();
+    }
   }
 
   onScopeChange(event: any) {
-    // Re-generate calendar with mock data based on the selected scope
-    this.generateCalendar();
+    if (this.selectedScope?.code === 'EMP') {
+      this.monthDays = [];
+      this.searchedEmployee = '';
+      this.searchText = '';
+    } else {
+      this.generateCalendar();
+    }
+  }
+
+  searchEmployee() {
+    if (this.searchText && this.searchText.trim() !== '') {
+      this.searchedEmployee = this.searchText;
+      this.generateCalendar();
+    }
   }
 
   next() {

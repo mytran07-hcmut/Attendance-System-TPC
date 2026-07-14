@@ -22,11 +22,12 @@ export class Symbols {
     { code: 'HC', name: 'Hành chính (Đi làm đủ)', color: '#f4cccc', description: 'Áp dụng khi nhân viên đến văn phòng/nhà máy làm việc và check-in đủ ca tiêu chuẩn (thường là 8 tiếng).' },
     { code: 'AL', name: 'Nghỉ phép năm', color: '#d9ead3', description: 'Áp dụng khi nhân viên chủ động xin nghỉ giải quyết việc riêng, đi du lịch... và số ngày nghỉ được trừ trực tiếp vào Quỹ phép năm còn lại của họ.' },
     { code: 'KP', name: 'Nghỉ không phép', color: '#c9daf8', description: 'Áp dụng khi nhân viên tự ý bỏ việc không thông báo, gọi điện không bắt máy. Ký hiệu này dùng làm căn cứ xử lý kỷ luật hoặc trừ điểm chuyên cần.' },
-    { code: 'OFF', name: 'Ngày nghỉ tuần', color: '#d9d2e9', description: 'Áp dụng cho ngày nghỉ mặc định trong tuần (thường là Chủ Nhật), hoặc ngày nghỉ xoay ca linh hoạt của nhân viên khối dịch vụ/cửa hàng.' }
+    { code: 'OFF', name: 'Ngày nghỉ tuần', color: '#d9d2e9', description: 'Áp dụng cho ngày nghỉ mặc định trong tuần (thường là Chủ Nhật), hoặc ngày nghỉ xoay ca linh hoạt của nhân viên khối dịch vụ/cửa hàng.' },
+    { code: 'L', name: 'Nghỉ Lễ, Tết', color: '#fff2cc', description: 'Hệ thống tự động áp dụng cho toàn công ty vào các ngày quốc lễ (Tết Âm/Dương lịch, 30/4, 1/5, Quốc khánh 2/9, Giỗ tổ Hùng Vương).' }
   ];
 
-  symbols = [...this.defaultSymbols.map(s => ({...s}))];
-  
+  symbols = [...this.defaultSymbols.map(s => ({ ...s }))];
+
   displayDialog: boolean = false;
   symbol: any = {};
   isEdit: boolean = false;
@@ -58,6 +59,6 @@ export class Symbols {
   }
 
   resetDefault() {
-    this.symbols = [...this.defaultSymbols.map(s => ({...s}))];
+    this.symbols = [...this.defaultSymbols.map(s => ({ ...s }))];
   }
 }
