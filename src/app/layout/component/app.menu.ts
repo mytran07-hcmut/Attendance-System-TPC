@@ -53,7 +53,9 @@ export class AppMenu implements OnInit {
                 {
                     label: 'Phân hệ Nhân viên',
                     items: [
-                        { label: 'Dashboard', icon: 'pi pi-fw pi-home', routerLink: ['/employee/dashboard'] }
+                        { label: 'Chấm công', icon: 'pi pi-fw pi-calendar-clock', routerLink: ['/employee/attendance'] },
+                        { label: 'Dashboard', icon: 'pi pi-fw pi-chart-pie', routerLink: ['/employee/dashboard'] },
+                        { label: 'Đăng ký phép', icon: 'pi pi-fw pi-file-edit', routerLink: ['/employee/leave'] }
                     ]
                 }
             ];

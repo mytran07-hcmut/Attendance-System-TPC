@@ -38,7 +38,7 @@ export class Login {
       this.router.navigate(['/hr/dashboard']);
     } else if (this.email.endsWith('@employee.com') && this.password === 'employee') {
       this.authService.login('employee');
-      this.router.navigate(['/employee/dashboard']);
+      this.router.navigate(['/employee/attendance']);
     } else {
       this.errorMessage = 'Tài khoản hoặc mật khẩu không chính xác';
     }

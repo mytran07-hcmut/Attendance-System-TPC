@@ -1,0 +1,48 @@
+import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
+import { SelectModule } from 'primeng/select';
+import { TextareaModule } from 'primeng/textarea';
+import { DatePickerModule } from 'primeng/datepicker';
+import { ButtonModule } from 'primeng/button';
+import { FormsModule } from '@angular/forms';
+import { ToastModule } from 'primeng/toast';
+import { MessageService } from 'primeng/api';
+import { Router } from '@angular/router';
+
+@Component({
+  selector: 'app-employee-leave',
+  standalone: true,
+  imports: [CommonModule, RouterModule, SelectModule, TextareaModule, DatePickerModule, ButtonModule, FormsModule, ToastModule],
+  providers: [MessageService],
+  templateUrl: './leave.html',
+  styleUrl: './leave.scss'
+})
+export class Leave {
+  leaveTypes = [
+    { label: 'Nghỉ phép năm (AL)', value: 'AL' },
+    { label: 'Nghỉ ốm', value: 'SICK' },
+    { label: 'Nghỉ việc riêng có lương', value: 'PAID' },
+    { label: 'Nghỉ không lương (KP)', value: 'KP' }
+  ];
+
+  selectedType: any = null;
+  dateRange: Date[] | undefined;
+  reason: string = '';
+
+  constructor(private messageService: MessageService, private router: Router) {}
+
+  submitLeaveRequest() {
+    if (!this.selectedType || !this.dateRange || !this.reason) {
+      this.messageService.add({ severity: 'error', summary: 'Lỗi', detail: 'Vui lòng điền đầy đủ thông tin' });
+      return;
+    }
+
+    this.messageService.add({ severity: 'success', summary: 'Thành công', detail: 'Đơn xin nghỉ phép đã được gửi đến HR' });
+    
+    // Giả lập redirect về Dashboard sau 2 giây
+    setTimeout(() => {
+        this.router.navigate(['/employee/dashboard']);
+    }, 2000);
+  }
+}
