@@ -1,0 +1,84 @@
+<div class="grid">
+    <div class="col-12">
+        <div class="flex align-items-center mb-4">
+            <button pButton pRipple icon="pi pi-arrow-left" class="p-button-text p-button-secondary mr-3" routerLink="/admin/departments"></button>
+            <h4 class="m-0">Danh sách nhân viên - <span class="text-primary">{{departmentName}}</span></h4>
+        </div>
+
+        <div class="card fadein animation-duration-300">
+            <p-table #dt [value]="employees" [rows]="10" [paginator]="true" responsiveLayout="scroll" [globalFilterFields]="['name','code','email']">
+                <ng-template pTemplate="caption">
+                    <div class="flex justify-content-end align-items-center">
+                        <p-iconfield iconPosition="left">
+                            <p-inputicon styleClass="pi pi-search"></p-inputicon>
+                            <input pInputText #searchInput type="text" (input)="dt.filterGlobal(searchInput.value, 'contains')" placeholder="Tìm kiếm nhân viên..." />
+                        </p-iconfield>
+                    </div>
+                </ng-template>
+                <ng-template pTemplate="header">
+                    <tr>
+                        <th>Mã NV</th>
+                        <th>Họ tên</th>
+                        <th>Chức vụ</th>
+                        <th>Trạng thái</th>
+                    </tr>
+                </ng-template>
+                <ng-template pTemplate="body" let-emp>
+                    <tr class="hover:surface-100 transition-duration-150 cursor-pointer" (click)="viewDetails(emp)">
+                        <td class="font-semibold">{{ emp.code }}</td>
+                        <td>{{ emp.name }}</td>
+                        <td>{{ emp.position }}</td>
+                        <td>
+                            <p-tag [severity]="emp.status === 'Làm việc' ? 'success' : 'warning'" [value]="emp.status"></p-tag>
+                        </td>
+                    </tr>
+                </ng-template>
+            </p-table>
+        </div>
+    </div>
+</div>
+
+<p-dialog header="Chi tiết nhân viên" [(visible)]="displayDetailDialog" [modal]="true" [dismissableMask]="true" [style]="{width: '500px'}" [draggable]="false" [resizable]="false">
+    <div *ngIf="selectedEmployee" class="flex flex-column gap-4 py-3">
+        <div class="flex flex-column align-items-center gap-3 border-bottom-1 surface-border pb-4">
+            <img src="assets/demo/images/avatar/amyelsner.png" alt="Avatar" class="border-circle shadow-2" style="width: 100px; height: 100px; object-fit: cover" onerror="this.src='https://ui-avatars.com/api/?name='+this.alt+'&background=random'" [alt]="selectedEmployee.name" />
+            <div class="text-center">
+                <div class="text-900 font-bold text-2xl mb-1">{{ selectedEmployee.name }}</div>
+                <div class="text-500 font-medium">{{ selectedEmployee.position }}</div>
+                <p-tag class="mt-2 block" [severity]="selectedEmployee.status === 'Làm việc' ? 'success' : 'warning'" [value]="selectedEmployee.status"></p-tag>
+            </div>
+        </div>
+
+        <div class="flex flex-column gap-3">
+            <div class="flex align-items-center">
+                <i class="pi pi-id-card text-500 mr-3 text-xl"></i>
+                <div class="flex flex-column">
+                    <span class="text-500 text-sm">Mã nhân viên</span>
+                    <span class="text-900 font-medium">{{ selectedEmployee.code }}</span>
+                </div>
+            </div>
+            <div class="flex align-items-center">
+                <i class="pi pi-envelope text-500 mr-3 text-xl"></i>
+                <div class="flex flex-column">
+                    <span class="text-500 text-sm">Email</span>
+                    <span class="text-900 font-medium">{{ selectedEmployee.email }}</span>
+                </div>
+            </div>
+            <div class="flex align-items-center">
+                <i class="pi pi-phone text-500 mr-3 text-xl"></i>
+                <div class="flex flex-column">
+                    <span class="text-500 text-sm">Số điện thoại</span>
+                    <span class="text-900 font-medium">{{ selectedEmployee.phone }}</span>
+                </div>
+            </div>
+            <div class="flex align-items-center">
+                <i class="pi pi-building text-500 mr-3 text-xl"></i>
+                <div class="flex flex-column">
+                    <span class="text-500 text-sm">Phòng ban</span>
+                    <span class="text-900 font-medium">{{ departmentName }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</p-dialog>

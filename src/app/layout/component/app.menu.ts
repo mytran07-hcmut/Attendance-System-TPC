@@ -44,7 +44,9 @@ export class AppMenu implements OnInit {
                 {
                     label: 'Phân hệ Admin',
                     items: [
-                        { label: 'Dashboard', icon: 'pi pi-fw pi-home', routerLink: ['/admin/dashboard'] }
+                        { label: 'Dashboard', icon: 'pi pi-fw pi-home', routerLink: ['/admin/dashboard'] },
+                        { label: 'Quản lý HR', icon: 'pi pi-fw pi-users', routerLink: ['/admin/manage-hr'] },
+                        { label: 'Quản lý Nhân viên', icon: 'pi pi-fw pi-building', routerLink: ['/admin/departments'] }
                     ]
                 }
             ];
