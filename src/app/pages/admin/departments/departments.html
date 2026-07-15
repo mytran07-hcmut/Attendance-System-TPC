@@ -1,0 +1,38 @@
+<div class="grid">
+    <div class="col-12">
+        <div class="card">
+            <h5>Danh sách Phòng/Ban</h5>
+            <div class="grid mt-3">
+                <div class="col-12 md:col-6 lg:col-4 xl:col-3" *ngFor="let dept of departments; let i = index">
+                    <div class="card mb-0 cursor-pointer hover:shadow-6 transition-duration-300 border-1 surface-border" (click)="viewEmployees(dept.id)" [ngStyle]="{'animation': 'fadeinup ' + (0.1 * i) + 's ease-out'}">
+                        <div class="flex flex-column align-items-center text-center">
+                            <div class="flex align-items-center justify-content-center border-circle mb-3 bg-{{dept.color}}-100" style="width: 4rem; height: 4rem">
+                                <i class="{{dept.icon}} text-{{dept.color}}-500 text-3xl"></i>
+                            </div>
+                            <span class="text-900 font-bold text-xl mb-2">{{dept.name}}</span>
+                            <span class="text-600 font-medium">{{dept.count}} nhân viên</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div *ngIf="departments.length === 0" class="flex flex-column align-items-center justify-content-center p-5">
+                <i class="pi pi-building text-500 text-6xl mb-4"></i>
+                <span class="text-700 text-xl font-medium">Chưa có phòng ban nào trong hệ thống.</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+@keyframes fadeinup {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+</style>

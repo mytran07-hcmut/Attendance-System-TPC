@@ -1,1 +1,101 @@
-<p>dashboard works!</p>
+<div class="grid">
+    <!-- Skeleton Loaders -->
+    <ng-container *ngIf="isLoading">
+        <div class="col-12 lg:col-6 xl:col-3" *ngFor="let i of [1,2,3,4]">
+            <div class="card mb-0">
+                <div class="flex justify-content-between mb-3">
+                    <div>
+                        <p-skeleton width="8rem" height="1.5rem" styleClass="mb-3"></p-skeleton>
+                        <p-skeleton width="3rem" height="2rem"></p-skeleton>
+                    </div>
+                    <p-skeleton size="2.5rem" shape="circle"></p-skeleton>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 xl:col-6">
+            <div class="card">
+                <p-skeleton width="10rem" height="2rem" styleClass="mb-4"></p-skeleton>
+                <p-skeleton width="100%" height="300px"></p-skeleton>
+            </div>
+        </div>
+    </ng-container>
+
+    <!-- Actual Content -->
+    <ng-container *ngIf="!isLoading">
+        <div class="col-12 lg:col-6 xl:col-3">
+            <div class="card mb-0 cursor-pointer hover:shadow-4 transition-duration-200 h-full flex flex-column justify-content-between" (click)="scrollToChart()">
+                <div class="flex justify-content-between mb-3">
+                    <div>
+                        <span class="block text-700 font-bold text-lg mb-3">Tổng nhân viên</span>
+                        <div class="text-900 font-bold text-2xl">{{ totalEmployees }}</div>
+                    </div>
+                    <div class="flex align-items-center justify-content-center bg-blue-100 border-round" style="width:2.5rem;height:2.5rem">
+                        <i class="pi pi-users text-blue-500 text-xl"></i>
+                    </div>
+                </div>
+                <div class="mt-2 text-sm">
+                    <span class="text-green-500 font-medium">+12 </span>
+                    <span class="text-500">nhân viên mới</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 lg:col-6 xl:col-3">
+            <div class="card mb-0 cursor-pointer hover:shadow-4 transition-duration-200 h-full flex flex-column justify-content-between" (click)="scrollToChart()">
+                <div class="flex justify-content-between mb-3">
+                    <div>
+                        <span class="block text-700 font-bold text-lg mb-3">Nhân viên mới</span>
+                        <div class="text-900 font-bold text-2xl">{{ newEmployees }}</div>
+                    </div>
+                    <div class="flex align-items-center justify-content-center bg-orange-100 border-round" style="width:2.5rem;height:2.5rem">
+                        <i class="pi pi-user-plus text-orange-500 text-xl"></i>
+                    </div>
+                </div>
+                <div class="mt-2 text-sm">
+                    <span class="text-green-500 font-medium">+20% </span>
+                    <span class="text-500">so với tháng trước</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 lg:col-6 xl:col-3">
+            <div class="card mb-0 cursor-pointer hover:shadow-4 transition-duration-200 h-full flex flex-column justify-content-between" (click)="navigateTo('/admin/manage-hr')">
+                <div class="flex justify-content-between mb-3">
+                    <div>
+                        <span class="block text-700 font-bold text-lg mb-3">Nhân sự HR</span>
+                        <div class="text-900 font-bold text-2xl">{{ hrCount }}</div>
+                    </div>
+                    <div class="flex align-items-center justify-content-center bg-cyan-100 border-round" style="width:2.5rem;height:2.5rem">
+                        <i class="pi pi-id-card text-cyan-500 text-xl"></i>
+                    </div>
+                </div>
+                <div class="flex align-items-center gap-1 mt-2">
+                    <span class="text-cyan-500 font-medium text-sm">Xem chi tiết</span>
+                    <i class="pi pi-arrow-right text-cyan-500 text-sm"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 lg:col-6 xl:col-3">
+            <div class="card mb-0 cursor-pointer hover:shadow-4 transition-duration-200 h-full flex flex-column justify-content-between" (click)="navigateTo('/admin/departments')">
+                <div class="flex justify-content-between mb-3">
+                    <div>
+                        <span class="block text-700 font-bold text-lg mb-3">Phòng/Ban</span>
+                        <div class="text-900 font-bold text-2xl">{{ departmentCount }}</div>
+                    </div>
+                    <div class="flex align-items-center justify-content-center bg-purple-100 border-round" style="width:2.5rem;height:2.5rem">
+                        <i class="pi pi-building text-purple-500 text-xl"></i>
+                    </div>
+                </div>
+                <div class="flex align-items-center gap-1 mt-2">
+                    <span class="text-purple-500 font-medium text-sm">Xem chi tiết</span>
+                    <i class="pi pi-arrow-right text-purple-500 text-sm"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 xl:col-6" id="chartSection">
+            <div class="card">
+                <h5>Thống kê tuyển dụng</h5>
+                <p-chart type="bar" [data]="barData" [options]="barOptions"></p-chart>
+            </div>
+        </div>
+    </ng-container>
+</div>
