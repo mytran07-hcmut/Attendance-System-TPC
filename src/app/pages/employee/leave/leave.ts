@@ -40,9 +40,15 @@ export class Leave {
 
     this.messageService.add({ severity: 'success', summary: 'Thành công', detail: 'Đơn xin nghỉ phép đã được gửi đến HR' });
     
-    // Giả lập redirect về Dashboard sau 2 giây
+    // Giả lập redirect về Attendance sau 2 giây với state
     setTimeout(() => {
-        this.router.navigate(['/employee/dashboard']);
+        this.router.navigate(['/employee/attendance'], { 
+            state: { 
+                leaveSubmitted: true, 
+                reason: this.reason,
+                dateRange: this.dateRange 
+            } 
+        });
     }, 2000);
   }
 }

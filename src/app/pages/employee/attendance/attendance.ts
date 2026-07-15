@@ -1,12 +1,14 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ButtonModule } from 'primeng/button';
+import { TooltipModule } from 'primeng/tooltip';
+import { BadgeModule } from 'primeng/badge';
 import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-employee-attendance',
   standalone: true,
-  imports: [CommonModule, ButtonModule],
+  imports: [CommonModule, ButtonModule, TooltipModule, BadgeModule],
   templateUrl: './attendance.html',
   styleUrl: './attendance.scss'
 })
@@ -14,6 +16,8 @@ export class Attendance implements OnInit {
   today: Date = new Date();
   hasConfirmed: boolean = false;
   attendanceStatus: 'present' | 'absent' | null = null;
+  isLeaveSubmitted: boolean = false;
+  showSuccessAnimation: boolean = false;
   
   weekDays = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
   employeeSchedule: any[] = [];
@@ -22,6 +26,37 @@ export class Attendance implements OnInit {
 
   ngOnInit() {
     this.generateMockSchedule();
+    
+    // Check if returning from leave request
+    if (history.state && history.state.leaveSubmitted) {
+      const dateRange = history.state.dateRange;
+      
+      let startDay = this.today.getDate();
+      let endDay = this.today.getDate();
+      
+      if (dateRange && dateRange.length > 0) {
+        let startDate = dateRange[0] ? new Date(dateRange[0]) : this.today;
+        let endDate = dateRange[1] ? new Date(dateRange[1]) : startDate;
+        
+        startDay = startDate.getDate();
+        endDay = endDate.getDate();
+      }
+      
+      this.employeeSchedule.forEach(cell => {
+        if (cell.date && cell.date >= startDay && cell.date <= endDay) {
+          cell.isAbsent = true;
+          cell.leaveReason = history.state.reason;
+        }
+      });
+      
+      // Only hide the check-in box for today if the leave request includes today
+      const todayDate = this.today.getDate();
+      if (todayDate >= startDay && todayDate <= endDay) {
+        this.hasConfirmed = true;
+        this.attendanceStatus = 'absent';
+        this.isLeaveSubmitted = true;
+      }
+    }
   }
 
   generateMockSchedule() {
@@ -40,11 +75,17 @@ export class Attendance implements OnInit {
         
         let isToday = i === this.today.getDate();
         
+        let isPast = i < this.today.getDate();
+        
         this.employeeSchedule.push({
             date: i,
             type: type,
             isWeekend: isWeekend,
-            isToday: isToday
+            isToday: isToday,
+            isPast: isPast,
+            isPresent: false,
+            isAbsent: false,
+            leaveReason: null
         });
     }
   }
@@ -61,8 +102,17 @@ export class Attendance implements OnInit {
   }
 
   confirmAttendance() {
+    this.showSuccessAnimation = true;
     this.hasConfirmed = true;
     this.attendanceStatus = 'present';
+    const todayCell = this.employeeSchedule.find(c => c.isToday);
+    if (todayCell) {
+      todayCell.isPresent = true;
+    }
+
+    setTimeout(() => {
+      this.showSuccessAnimation = false;
+    }, 3200);
   }
 
   declineAttendance() {
@@ -70,5 +120,17 @@ export class Attendance implements OnInit {
     this.attendanceStatus = 'absent';
     // Navigate to leave request
     this.router.navigate(['/employee/leave']);
+  }
+
+  resetAttendance() {
+    this.hasConfirmed = false;
+    this.attendanceStatus = null;
+    this.isLeaveSubmitted = false;
+    const todayCell = this.employeeSchedule.find(c => c.isToday);
+    if (todayCell) {
+      todayCell.isPresent = false;
+      todayCell.isAbsent = false;
+      todayCell.leaveReason = null;
+    }
   }
 }

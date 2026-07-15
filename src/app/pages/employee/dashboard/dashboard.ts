@@ -31,7 +31,7 @@ export class Dashboard implements OnInit {
   getSeverity(status: string) {
     switch (status) {
       case 'Đã duyệt': return 'success';
-      case 'Chờ duyệt': return 'warning';
+      case 'Chờ duyệt': return 'warn';
       case 'Từ chối': return 'danger';
       default: return 'info';
     }
