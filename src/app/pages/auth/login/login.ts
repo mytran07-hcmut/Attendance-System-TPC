@@ -30,14 +30,8 @@ export class Login {
       return;
     }
 
-    if (this.email.endsWith('@admin.com') && this.password === 'admin') {
-      this.authService.login('admin');
-      this.router.navigate(['/admin/dashboard']);
-    } else if (this.email.endsWith('@hr.com') && this.password === 'hr') {
-      this.authService.login('hr');
-      this.router.navigate(['/hr/dashboard']);
-    } else if (this.email.endsWith('@employee.com') && this.password === 'employee') {
-      this.authService.login('employee');
+    const success = this.authService.login(this.email, this.password);
+    if (success) {
       this.router.navigate(['/employee/attendance']);
     } else {
       this.errorMessage = 'Tài khoản hoặc mật khẩu không chính xác';
