@@ -16,8 +16,10 @@ export const authGuard: CanActivateFn = (route, state) => {
   const expectedRole = route.data['role'];
   const currentRole = authService.getRole();
 
-  if (currentRole && (!expectedRole || currentRole === expectedRole)) {
-    return true;
+  if (currentRole) {
+    if (!expectedRole || expectedRole === 'employee' || currentRole === expectedRole) {
+      return true;
+    }
   }
 
   // Not authorized or wrong role

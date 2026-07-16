@@ -1,18 +1,86 @@
 import { Component, computed, effect, ElementRef, inject, OnDestroy, OnInit } from '@angular/core';
 import { NavigationEnd, Router, RouterModule } from '@angular/router';
 import { filter, Subject, takeUntil } from 'rxjs';
+import { CommonModule } from '@angular/common';
 import { AppMenu } from './app.menu';
 import { LayoutService } from '@/app/layout/service/layout.service';
+import { AuthService, User } from '../../core/services/auth';
 
 @Component({
     selector: 'app-sidebar',
     standalone: true,
-    imports: [AppMenu, RouterModule],
+    imports: [AppMenu, RouterModule, CommonModule],
     template: `
         <div class="layout-sidebar">
+            @if (currentUser) {
+                <div class="sidebar-profile">
+                    <div class="profile-avatar">
+                        {{ currentUser.name.charAt(0).toUpperCase() }}
+                    </div>
+                    <div class="profile-info">
+                        <span class="profile-name">{{ currentUser.name }}</span>
+                        @if (currentUser.roleLabel) {
+                            <span class="profile-role" [ngClass]="currentUser.role">{{ currentUser.roleLabel }}</span>
+                        }
+                    </div>
+                </div>
+            }
             <app-menu></app-menu>
         </div>
-    `
+    `,
+    styles: [`
+        .sidebar-profile {
+            display: flex;
+            align-items: center;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid var(--surface-border);
+        }
+        .profile-avatar {
+            width: 3rem;
+            height: 3rem;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            color: var(--primary-color-text);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-right: 1rem;
+        }
+        .profile-info {
+            display: flex;
+            flex-direction: column;
+        }
+        .profile-name {
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: var(--text-color);
+        }
+        .profile-role {
+            font-size: 0.85rem;
+            margin-top: 0.25rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            background-color: var(--surface-ground);
+            color: var(--text-color-secondary);
+            display: inline-block;
+            width: fit-content;
+        }
+        .profile-role.admin {
+            background-color: #ffcdd2;
+            color: #c62828;
+        }
+        .profile-role.hr {
+            background-color: #bbdefb;
+            color: #1565c0;
+        }
+        .profile-role.head {
+            background-color: #e1bee7;
+            color: #6a1b9a;
+        }
+    `]
 })
 export class AppSidebar implements OnInit, OnDestroy {
     layoutService = inject(LayoutService);
@@ -20,6 +88,10 @@ export class AppSidebar implements OnInit, OnDestroy {
     router = inject(Router);
 
     el = inject(ElementRef);
+    
+    authService = inject(AuthService);
+
+    currentUser: User | null = null;
 
     private outsideClickListener: ((event: MouseEvent) => void) | null = null;
 
@@ -46,6 +118,8 @@ export class AppSidebar implements OnInit, OnDestroy {
     }
 
     ngOnInit() {
+        this.currentUser = this.authService.getCurrentUser();
+        
         this.router.events
             .pipe(
                 filter((event) => event instanceof NavigationEnd),

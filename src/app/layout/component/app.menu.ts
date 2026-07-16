@@ -27,47 +27,37 @@ export class AppMenu implements OnInit {
     ngOnInit() {
         const role = this.authService.getRole();
 
+        // Luôn có menu của Nhân viên
+        const employeeMenu = {
+            label: 'Phân hệ Nhân viên',
+            items: [
+                { label: 'Chấm công', icon: 'pi pi-fw pi-calendar-clock', routerLink: ['/employee/attendance'] },
+                { label: 'Dashboard', icon: 'pi pi-fw pi-chart-pie', routerLink: ['/employee/dashboard'] },
+                { label: 'Đăng ký phép', icon: 'pi pi-fw pi-file-edit', routerLink: ['/employee/leave'] }
+            ]
+        };
+
+        this.model = [employeeMenu];
+
         if (role === 'hr') {
-            this.model = [
-                {
-                    label: 'Phân hệ HR',
-                    items: [
-                        { label: 'Dashboard', icon: 'pi pi-fw pi-home', routerLink: ['/hr/dashboard'] },
-                        { label: 'Quản lý ký hiệu', icon: 'pi pi-fw pi-tags', routerLink: ['/hr/symbols'] },
-                        { label: 'Lịch', icon: 'pi pi-fw pi-calendar-plus', routerLink: ['/hr/schedule'] },
-                        { label: 'Chốt công & Báo cáo', icon: 'pi pi-fw pi-chart-bar', routerLink: ['/hr/reports'] }
-                    ]
-                }
-            ];
+            this.model.unshift({
+                label: 'Phân hệ HR',
+                items: [
+                    { label: 'Dashboard', icon: 'pi pi-fw pi-home', routerLink: ['/hr/dashboard'] },
+                    { label: 'Quản lý ký hiệu', icon: 'pi pi-fw pi-tags', routerLink: ['/hr/symbols'] },
+                    { label: 'Lịch', icon: 'pi pi-fw pi-calendar-plus', routerLink: ['/hr/schedule'] },
+                    { label: 'Chốt công & Báo cáo', icon: 'pi pi-fw pi-chart-bar', routerLink: ['/hr/reports'] }
+                ]
+            });
         } else if (role === 'admin') {
-            this.model = [
-                {
-                    label: 'Phân hệ Admin',
-                    items: [
-                        { label: 'Dashboard', icon: 'pi pi-fw pi-home', routerLink: ['/admin/dashboard'] },
-                        { label: 'Quản lý HR', icon: 'pi pi-fw pi-users', routerLink: ['/admin/manage-hr'] },
-                        { label: 'Quản lý Nhân viên', icon: 'pi pi-fw pi-building', routerLink: ['/admin/departments'] }
-                    ]
-                }
-            ];
-        } else if (role === 'employee') {
-            this.model = [
-                {
-                    label: 'Phân hệ Nhân viên',
-                    items: [
-                        { label: 'Chấm công', icon: 'pi pi-fw pi-calendar-clock', routerLink: ['/employee/attendance'] },
-                        { label: 'Dashboard', icon: 'pi pi-fw pi-chart-pie', routerLink: ['/employee/dashboard'] },
-                        { label: 'Đăng ký phép', icon: 'pi pi-fw pi-file-edit', routerLink: ['/employee/leave'] }
-                    ]
-                }
-            ];
-        } else {
-            this.model = [
-                {
-                    label: 'Home',
-                    items: [{ label: 'Dashboard', icon: 'pi pi-fw pi-home', routerLink: ['/'] }]
-                }
-            ];
+            this.model.unshift({
+                label: 'Phân hệ Admin',
+                items: [
+                    { label: 'Dashboard', icon: 'pi pi-fw pi-home', routerLink: ['/admin/dashboard'] },
+                    { label: 'Quản lý HR', icon: 'pi pi-fw pi-users', routerLink: ['/admin/manage-hr'] },
+                    { label: 'Quản lý Nhân viên', icon: 'pi pi-fw pi-building', routerLink: ['/admin/departments'] }
+                ]
+            });
         }
     }
 }
