@@ -9,6 +9,7 @@ import { DialogModule } from 'primeng/dialog';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
 import { InputTextModule } from 'primeng/inputtext';
+import { DatabaseService } from '../../../core/services/database.service';
 
 @Component({
   selector: 'app-hr-reports',
@@ -26,28 +27,30 @@ export class Reports implements OnInit {
   employeeSchedule: any[] = [];
   weekDays = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
 
-  constructor(private confirmationService: ConfirmationService, private messageService: MessageService) {}
+  constructor(private confirmationService: ConfirmationService, private messageService: MessageService, private db: DatabaseService) {}
 
   ngOnInit() {
-    // Generate 30 mock employees
-    const depts = ['IT', 'Kế toán', 'Nhân sự', 'Marketing', 'Kinh doanh', 'Hành chính'];
-    const names = ['Nguyễn Văn A', 'Trần Thị B', 'Lê Văn C', 'Phạm Thị D', 'Hoàng Văn E', 'Đỗ Thị F', 'Ngô Văn G', 'Dương Thị H', 'Lý Văn I', 'Đinh Thị K'];
-    
-    for (let i = 1; i <= 30; i++) {
-      let hc = Math.floor(Math.random() * 5) + 18; // 18-22
-      let off = Math.floor(Math.random() * 3); // 0-2
-      let l = Math.floor(Math.random() * 2); // 0-1
+    this.db.employees$.subscribe(employees => {
+      this.reports = [];
+      // Use the first 30 employees from DB for reports to avoid overwhelming the view
+      const targetEmployees = employees.slice(0, 30);
       
-      this.reports.push({
-        id: i,
-        employee: names[i % names.length] + ' ' + i,
-        department: depts[i % depts.length],
-        totalHC: hc,
-        totalOFF: off,
-        totalL: l,
-        status: (hc + off + l >= 22) ? 'Đủ công' : 'Thiếu công'
+      targetEmployees.forEach((emp, index) => {
+        let hc = Math.floor(Math.random() * 5) + 18; // 18-22
+        let off = Math.floor(Math.random() * 3); // 0-2
+        let l = Math.floor(Math.random() * 2); // 0-1
+        
+        this.reports.push({
+          id: emp.id,
+          employee: emp.fullName,
+          department: emp.department,
+          totalHC: hc,
+          totalOFF: off,
+          totalL: l,
+          status: (hc + off + l >= 22) ? 'Đủ công' : 'Thiếu công'
+        });
       });
-    }
+    });
   }
 
   exportExcel() {

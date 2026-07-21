@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, signal, WritableSignal } from '@angular/core';
 import { Router } from '@angular/router';
 
 export interface User {
@@ -19,7 +19,11 @@ const MOCK_USERS: User[] = [
   providedIn: 'root'
 })
 export class AuthService {
-  constructor(private router: Router) {}
+  currentUserSignal: WritableSignal<User | null> = signal<User | null>(null);
+
+  constructor(private router: Router) {
+    this.currentUserSignal.set(this.getCurrentUser());
+  }
 
   login(email: string, password: string): boolean {
     if (password === '123') {
@@ -28,6 +32,7 @@ export class AuthService {
         if (typeof window !== 'undefined') {
           localStorage.setItem('currentUser', JSON.stringify(user));
         }
+        this.currentUserSignal.set(user);
         return true;
       }
     }
@@ -38,7 +43,19 @@ export class AuthService {
     if (typeof window !== 'undefined') {
       localStorage.removeItem('currentUser');
     }
+    this.currentUserSignal.set(null);
     this.router.navigate(['/login']);
+  }
+
+  updateProfile(name: string) {
+    const user = this.currentUserSignal();
+    if (user) {
+      const updatedUser = { ...user, name };
+      this.currentUserSignal.set(updatedUser);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+      }
+    }
   }
 
   getCurrentUser(): User | null {

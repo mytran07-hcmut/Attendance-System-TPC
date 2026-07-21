@@ -6,7 +6,7 @@
         </div>
 
         <div class="card fadein animation-duration-300">
-            <p-table #dt [value]="employees" [rows]="10" [paginator]="true" responsiveLayout="scroll" [globalFilterFields]="['name','code','email']">
+            <p-table #dt [value]="employees" [rows]="10" [paginator]="true" responsiveLayout="scroll" [globalFilterFields]="['fullName','code','email']">
                 <ng-template pTemplate="caption">
                     <div class="flex justify-content-end align-items-center">
                         <p-iconfield iconPosition="left">
@@ -26,8 +26,8 @@
                 <ng-template pTemplate="body" let-emp>
                     <tr class="hover:surface-100 transition-duration-150 cursor-pointer" (click)="viewDetails(emp)">
                         <td class="font-semibold">{{ emp.code }}</td>
-                        <td>{{ emp.name }}</td>
-                        <td>{{ emp.position }}</td>
+                        <td>{{ emp.fullName }}</td>
+                        <td>{{ emp.title }}</td>
                         <td>
                             <p-tag [severity]="emp.status === 'Làm việc' ? 'success' : 'warning'" [value]="emp.status"></p-tag>
                         </td>
@@ -41,10 +41,10 @@
 <p-dialog header="Chi tiết nhân viên" [(visible)]="displayDetailDialog" [modal]="true" [dismissableMask]="true" [style]="{width: '500px'}" [draggable]="false" [resizable]="false">
     <div *ngIf="selectedEmployee" class="flex flex-column gap-4 py-3">
         <div class="flex flex-column align-items-center gap-3 border-bottom-1 surface-border pb-4">
-            <img src="assets/demo/images/avatar/amyelsner.png" alt="Avatar" class="border-circle shadow-2" style="width: 100px; height: 100px; object-fit: cover" onerror="this.src='https://ui-avatars.com/api/?name='+this.alt+'&background=random'" [alt]="selectedEmployee.name" />
+            <img src="assets/demo/images/avatar/amyelsner.png" alt="Avatar" class="border-circle shadow-2" style="width: 100px; height: 100px; object-fit: cover" onerror="this.src='https://ui-avatars.com/api/?name='+this.alt+'&background=random'" [alt]="selectedEmployee.fullName" />
             <div class="text-center">
-                <div class="text-900 font-bold text-2xl mb-1">{{ selectedEmployee.name }}</div>
-                <div class="text-500 font-medium">{{ selectedEmployee.position }}</div>
+                <div class="text-900 font-bold text-2xl mb-1">{{ selectedEmployee.fullName }}</div>
+                <div class="text-500 font-medium">{{ selectedEmployee.title }}</div>
                 <p-tag class="mt-2 block" [severity]="selectedEmployee.status === 'Làm việc' ? 'success' : 'warning'" [value]="selectedEmployee.status"></p-tag>
             </div>
         </div>

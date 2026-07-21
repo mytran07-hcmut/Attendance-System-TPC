@@ -24,3 +24,12 @@
         opacity: 1;
     }
 }
+
+:host ::ng-deep .no-border-table .p-datatable-tbody > tr > td {
+    border-bottom: none !important;
+}
+
+:host ::ng-deep .p-dialog .p-dialog-header .p-dialog-header-icon {
+    border: none !important;
+    outline: none !important;
+}

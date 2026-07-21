@@ -40,6 +40,11 @@ export const routes: Routes = [
                     { path: 'dashboard', loadComponent: () => import('./pages/employee/dashboard/dashboard').then((m) => m.Dashboard) },
                     { path: 'leave', loadComponent: () => import('./pages/employee/leave/leave').then((m) => m.Leave) }
                 ]
+            },
+            {
+                path: 'settings',
+                canActivate: [authGuard],
+                loadComponent: () => import('./pages/settings/settings').then((m) => m.Settings)
             }
         ]
     },

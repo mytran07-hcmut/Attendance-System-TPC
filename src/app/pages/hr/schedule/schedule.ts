@@ -14,11 +14,16 @@ import { DatePickerModule } from 'primeng/datepicker';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { TooltipModule } from 'primeng/tooltip';
+import { TableModule } from 'primeng/table';
+import { TagModule } from 'primeng/tag';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
+import { DatabaseService, Employee } from '../../../core/services/database.service';
 
 @Component({
   selector: 'app-hr-schedule',
   standalone: true,
-  imports: [CommonModule, StepsModule, SelectModule, CascadeSelectModule, ButtonModule, FormsModule, CheckboxModule, ToastModule, DatePickerModule, DialogModule, InputTextModule, TooltipModule],
+  imports: [CommonModule, StepsModule, SelectModule, CascadeSelectModule, ButtonModule, FormsModule, CheckboxModule, ToastModule, DatePickerModule, DialogModule, InputTextModule, TooltipModule, TableModule, TagModule, IconFieldModule, InputIconModule],
   providers: [MessageService],
   templateUrl: './schedule.html',
   styleUrl: './schedule.scss'
@@ -30,7 +35,10 @@ export class Schedule implements OnInit {
     { label: 'Xem trước & Đăng lịch' }
   ];
   activeIndex: number = 0;
-  viewState: 'calendar' | 'wizard' = 'calendar';
+  viewState: 'calendar' | 'wizard' | 'employeeList' | 'employeeCalendar' = 'calendar';
+  isScheduleCreated: boolean = true;
+  isEditMode: boolean = false;
+  totalEmployeeWorkDays: number = 0;
   availableSymbols = [
     { code: 'HC', name: 'Hành chính', color: '#f4cccc' },
     { code: 'AL', name: 'Nghỉ phép năm', color: '#d9ead3' },
@@ -43,7 +51,11 @@ export class Schedule implements OnInit {
   tempSymbol: any = null;
   tempHolidayName: string = '';
 
-
+  // Day Details dialog
+  displayDayDetailsDialog: boolean = false;
+  selectedDayDetails: any = null;
+  absentList: any[] = [];
+  lateList: any[] = [];
 
   scopeOptions = [
     { label: 'Toàn công ty', code: 'ALL' },
@@ -60,7 +72,6 @@ export class Schedule implements OnInit {
   ];
   selectedScope: any = this.scopeOptions[0];
   searchText: string = '';
-  searchedEmployee: string = '';
 
   options = [
     { label: 'Toàn công ty', value: 1 },
@@ -72,7 +83,7 @@ export class Schedule implements OnInit {
   departments = [{ name: 'IT' }, { name: 'Kế toán' }, { name: 'Nhân sự' }];
   selectedDepartment: any;
 
-  employees = [{ name: 'Nguyễn Văn A' }, { name: 'Trần Thị B' }];
+  employees: Employee[] = [];
   selectedEmployee: any;
 
   // Calendar setup
@@ -80,7 +91,7 @@ export class Schedule implements OnInit {
   monthDays: any[] = [];
   weekDays = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
 
-  constructor(private messageService: MessageService, private route: ActivatedRoute) {
+  constructor(private messageService: MessageService, private route: ActivatedRoute, private db: DatabaseService) {
     this.generateCalendar();
   }
 
@@ -91,6 +102,52 @@ export class Schedule implements OnInit {
         this.activeIndex = 0;
       }
     });
+    this.db.employees$.subscribe(data => {
+      this.employees = data;
+    });
+  }
+
+  toggleEditMode() {
+    this.isEditMode = !this.isEditMode;
+  }
+
+  onCellClick(cell: any) {
+    if (this.isEditMode) {
+      if (!cell.isPast && cell.date) {
+        this.openEditDialog(cell);
+      }
+    } else {
+      this.viewDayDetails(cell);
+    }
+  }
+
+  viewDayDetails(cell: any) {
+    if (!cell || !cell.date || (!cell.absentCount && !cell.lateCount)) {
+      return;
+    }
+
+    this.selectedDayDetails = cell;
+    
+    // Randomize absent list
+    const shuffledAbsents = [...this.employees].sort(() => 0.5 - Math.random());
+    this.absentList = shuffledAbsents.slice(0, cell.absentCount).map(emp => ({
+      ...emp,
+      leaveType: Math.random() > 0.3 ? 'Có phép' : 'Không phép'
+    }));
+
+    // Randomize late list (late is after 09:30)
+    const shuffledLates = [...this.employees].sort(() => 0.5 - Math.random());
+    this.lateList = shuffledLates.slice(0, cell.lateCount).map(emp => {
+      const hour = 9 + Math.floor(Math.random() * 2); // 09 or 10
+      const minute = hour === 9 ? 31 + Math.floor(Math.random() * 29) : Math.floor(Math.random() * 30);
+      const timeStr = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+      return {
+        ...emp,
+        checkInTime: timeStr
+      };
+    });
+
+    this.displayDayDetailsDialog = true;
   }
 
   openEditDialog(cell: any) {
@@ -108,6 +165,9 @@ export class Schedule implements OnInit {
         this.editingCell.holidayName = this.tempHolidayName;
       } else {
         this.editingCell.holidayName = '';
+      }
+      if (this.viewState === 'employeeCalendar') {
+        this.calculateTotalWorkDays();
       }
     }
     this.displayEditDialog = false;
@@ -131,29 +191,41 @@ export class Schedule implements OnInit {
     this.generateCalendar();
   }
 
+  checkScheduleCreated() {
+    const today = new Date();
+    const isFutureMonth = this.currentMonth.getFullYear() > today.getFullYear() || 
+                          (this.currentMonth.getFullYear() === today.getFullYear() && this.currentMonth.getMonth() > today.getMonth());
+    this.isScheduleCreated = !isFutureMonth;
+  }
+
   onMonthSelect() {
-    if (this.selectedScope?.code === 'EMP' && !this.searchedEmployee) {
-      this.monthDays = [];
-    } else {
-      this.generateCalendar();
-    }
+    this.checkScheduleCreated();
+    this.generateCalendar();
   }
 
   onScopeChange(event: any) {
     if (this.selectedScope?.code === 'EMP') {
-      this.monthDays = [];
-      this.searchedEmployee = '';
-      this.searchText = '';
+      this.viewState = 'employeeList';
     } else {
+      this.viewState = 'calendar';
       this.generateCalendar();
     }
   }
 
-  searchEmployee() {
-    if (this.searchText && this.searchText.trim() !== '') {
-      this.searchedEmployee = this.searchText;
-      this.generateCalendar();
-    }
+  selectEmployeeForCalendar(emp: Employee) {
+    this.selectedEmployee = emp;
+    this.viewState = 'employeeCalendar';
+    this.generateCalendar();
+    this.calculateTotalWorkDays();
+  }
+
+  calculateTotalWorkDays() {
+    this.totalEmployeeWorkDays = this.monthDays.filter(d => d.date && d.type === 'HC').length;
+  }
+
+  saveEmployeeCalendar() {
+    this.messageService.add({ severity: 'success', summary: 'Thành công', detail: 'Đã cập nhật lịch làm việc cho ' + this.selectedEmployee.fullName });
+    this.viewState = 'employeeList';
   }
 
   next() {
@@ -187,6 +259,7 @@ export class Schedule implements OnInit {
   }
 
   generateCalendar() {
+    this.checkScheduleCreated();
     const year = this.currentMonth.getFullYear();
     const month = this.currentMonth.getMonth();
     const firstDay = new Date(year, month, 1).getDay();
@@ -211,11 +284,34 @@ export class Schedule implements OnInit {
       // Specific overrides if needed
       if (this.selectedOption === 2 && !isWeekend) type = '?'; // Wait for manager
       if (this.selectedOption === 3 && !isWeekend) type = '?'; // Wait for employee
+      
+      let absentCount = 0;
+      let lateCount = 0;
+      // Generate some mock absent/late data for past days when viewing entire company
+      let isToday = false;
+      let isPast = false;
+      
+      const today = new Date();
+      if (year === today.getFullYear() && month === today.getMonth()) {
+        isToday = i === today.getDate();
+        isPast = i < today.getDate();
+      } else if (year < today.getFullYear() || (year === today.getFullYear() && month < today.getMonth())) {
+        isPast = true;
+      }
+
+      if (this.viewState === 'calendar' && this.isScheduleCreated && !isWeekend && isPast) {
+        absentCount = Math.floor(Math.random() * 5); // 0-4
+        lateCount = Math.floor(Math.random() * 10); // 0-9
+      }
 
       this.monthDays.push({
         date: i,
         type: type,
-        isWeekend: isWeekend
+        isWeekend: isWeekend,
+        isPast: isPast,
+        isToday: isToday,
+        absentCount: absentCount,
+        lateCount: lateCount
       });
     }
   }

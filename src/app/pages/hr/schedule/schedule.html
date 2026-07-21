@@ -1,79 +1,179 @@
 <p-toast></p-toast>
-<div class="card" *ngIf="viewState === 'calendar'">
-    <!-- Header: Mặc định -->
-    <ng-container *ngIf="!(selectedScope?.code === 'EMP' && searchedEmployee)">
-        <div class="flex flex-column md:flex-row justify-content-between align-items-start md:align-items-center mb-5">
-            <div class="flex flex-column sm:flex-row align-items-start sm:align-items-center gap-3 mb-3 md:mb-0">
-                <h5 class="m-0">Lịch làm việc</h5>
-                <p-cascadeSelect [options]="scopeOptions" [(ngModel)]="selectedScope" optionLabel="label"
-                    optionGroupLabel="label" [optionGroupChildren]="['items']" [style]="{'minWidth': '14rem'}"
-                    placeholder="Chọn đối tượng" (onChange)="onScopeChange($event)">
-                </p-cascadeSelect>
-                <p-datePicker [(ngModel)]="currentMonth" view="month" dateFormat="mm/yy" [readonlyInput]="true"
-                    (onSelect)="onMonthSelect()">
-                </p-datePicker>
-            </div>
-            <button pButton pRipple label="Thêm lịch làm việc" icon="pi pi-plus" class="p-button-primary"
+<!-- MAIN VIEW (Calendar, EmployeeList, EmployeeCalendar) -->
+<div class="card" *ngIf="viewState === 'calendar' || viewState === 'employeeList' || viewState === 'employeeCalendar'">
+
+    <!-- Header Controls -->
+    <div class="flex flex-column md:flex-row justify-content-between align-items-start md:align-items-center mb-5">
+        <div class="flex flex-column sm:flex-row align-items-start sm:align-items-center gap-3 mb-3 md:mb-0">
+            <h5 class="m-0">Quản lý Lịch làm việc</h5>
+            <p-cascadeSelect [options]="scopeOptions" [(ngModel)]="selectedScope" optionLabel="label"
+                optionGroupLabel="label" [optionGroupChildren]="['items']" [style]="{'minWidth': '14rem'}"
+                placeholder="Chọn đối tượng" (onChange)="onScopeChange($event)"
+                [disabled]="viewState === 'employeeCalendar'">
+            </p-cascadeSelect>
+            <p-datePicker [(ngModel)]="currentMonth" view="month" dateFormat="mm/yy" [readonlyInput]="true"
+                (onSelect)="onMonthSelect()">
+            </p-datePicker>
+        </div>
+        <div class="flex gap-2">
+            <button *ngIf="viewState === 'employeeCalendar'" pButton pRipple label="Quay lại" icon="pi pi-arrow-left"
+                class="p-button-secondary p-button-outlined" (click)="viewState = 'employeeList'"></button>
+            <button *ngIf="viewState === 'calendar' && isScheduleCreated && !isEditMode" pButton pRipple label="Chỉnh sửa" icon="pi pi-pencil" class="p-button-primary p-button-outlined"
+                (click)="toggleEditMode()"></button>
+            <button *ngIf="viewState === 'calendar' && isScheduleCreated && isEditMode" pButton pRipple label="Hoàn tất" icon="pi pi-check" class="p-button-success"
+                (click)="toggleEditMode()"></button>
+            <button *ngIf="!isScheduleCreated || viewState === 'employeeList'" pButton pRipple label="Thêm lịch làm việc" icon="pi pi-plus" class="p-button-primary"
                 (click)="openWizard()"></button>
         </div>
-    </ng-container>
+    </div>
 
-    <!-- Header: Đã tìm kiếm nhân viên -->
-    <ng-container *ngIf="selectedScope?.code === 'EMP' && searchedEmployee">
-        <div class="flex flex-column gap-4 mb-5">
-            <div class="flex justify-content-between align-items-center">
-                <h5 class="m-0 text-xl font-bold">Lịch làm việc</h5>
-                <button pButton pRipple icon="pi pi-plus" class="p-button-primary p-button-rounded"
-                    pTooltip="Thêm lịch làm việc" tooltipPosition="left" (click)="openWizard()"></button>
-            </div>
-            <div class="flex flex-column sm:flex-row align-items-start sm:align-items-center gap-3">
-                <p-cascadeSelect [options]="scopeOptions" [(ngModel)]="selectedScope" optionLabel="label"
-                    optionGroupLabel="label" [optionGroupChildren]="['items']" [style]="{'minWidth': '14rem'}"
-                    placeholder="Chọn đối tượng" (onChange)="onScopeChange($event)">
-                </p-cascadeSelect>
-                <input type="text" pInputText placeholder="Nhập tên nhân viên..." [(ngModel)]="searchText"
-                    (keyup.enter)="searchEmployee()" style="min-width: 15rem;" />
-                <p-datePicker [(ngModel)]="currentMonth" view="month" dateFormat="mm/yy" [readonlyInput]="true"
-                    (onSelect)="onMonthSelect()">
-                </p-datePicker>
-            </div>
-        </div>
-    </ng-container>
-
-    <div class="card" *ngIf="viewState === 'calendar'">
-        <!-- MAIN CALENDAR VIEW -->
-        <div class="text-center p-6 text-600 flex flex-column align-items-center justify-content-center mt-3"
-            *ngIf="selectedScope?.code === 'EMP' && !searchedEmployee">
-            <div class="bg-primary-50 text-primary border-circle inline-flex justify-content-center align-items-center mb-4"
-                style="width: 5rem; height: 5rem;">
-                <i class="pi pi-search" style="font-size: 2.5rem;"></i>
-            </div>
-            <h5 class="m-0 mb-2 text-900 font-semibold text-xl">Tra cứu lịch làm việc của nhân viên</h5>
-            <p class="m-0 mb-4 text-500">Nhập tên nhân viên vào ô bên dưới và nhấn Enter để hiển thị lịch.</p>
-
-            <input type="text" pInputText placeholder="Nhập tên nhân viên..." [(ngModel)]="searchText"
-                (keyup.enter)="searchEmployee()" class="w-full max-w-25rem shadow-3 text-lg"
-                style="border: 2px solid var(--primary-color); border-radius: 8px; padding: 1rem;" />
+    <!-- STATE 1: CALENDAR (Company or Department) -->
+    <ng-container *ngIf="viewState === 'calendar'">
+        <!-- Empty State (No schedule) -->
+        <div *ngIf="!isScheduleCreated" class="flex flex-column align-items-center justify-content-center py-8">
+            <i class="pi pi-calendar-times text-600 mb-4" style="font-size: 4rem;"></i>
+            <h4 class="text-700 font-medium mb-4">Lịch làm việc tháng {{ currentMonth | date:'MM/yyyy' }} chưa được khởi
+                tạo</h4>
+            <button pButton pRipple label="Tạo lịch làm việc ngay" icon="pi pi-calendar-plus"
+                class="p-button-primary p-button-lg" (click)="openWizard()"></button>
         </div>
 
-        <!-- Custom Calendar Grid -->
-        <div class="w-full border-round overflow-hidden" style="border: 1px solid var(--surface-d)"
-            *ngIf="selectedScope?.code !== 'EMP' || searchedEmployee">
+        <!-- Created State -->
+        <div *ngIf="isScheduleCreated" class="w-full border-round overflow-hidden"
+            style="border: 1px solid var(--surface-d)">
             <div class="flex bg-primary text-white p-3">
                 <div class="flex-1 text-center font-bold" *ngFor="let day of weekDays">{{day}}</div>
             </div>
             <div class="flex flex-wrap">
                 <div *ngFor="let cell of monthDays"
                     class="flex flex-column p-2 border-right-1 border-bottom-1 border-300 cursor-pointer calendar-cell"
-                    style="width: 14.28%; height: 120px;" [ngClass]="{'bg-surface-100': cell.isWeekend}"
+                    style="width: 14.28%; height: 120px;" [ngClass]="{'bg-gray-100': cell.isPast, 'bg-surface-50': cell.isWeekend && !cell.isPast}"
+                    [pTooltip]="(cell.absentCount > 0 || cell.lateCount > 0) && !isEditMode ? cell.absentCount + ' vắng, ' + cell.lateCount + ' trễ' : ''" tooltipPosition="top"
+                    (click)="onCellClick(cell)">
+                    
+                    <div class="edit-overlay" *ngIf="isEditMode && cell.date && !cell.isPast">
+                        <i class="pi pi-pencil"></i>
+                    </div>
+
+                    <div class="flex justify-content-end mb-1">
+                        <div *ngIf="cell.date"
+                            class="text-center font-bold text-sm flex align-items-center justify-content-center"
+                            [ngClass]="{'bg-primary text-white border-circle': cell.isToday, 'text-600': !cell.isToday}"
+                            [style]="cell.isToday ? 'width: 1.5rem; height: 1.5rem;' : ''">
+                            {{cell.date}}
+                        </div>
+                    </div>
+
+                    <div class="flex-grow-1 flex flex-column justify-content-center overflow-hidden px-1 gap-1 mt-1">
+                        <div *ngIf="cell.type === 'L' && cell.holidayName"
+                            class="text-sm text-600 text-center font-italic text-overflow-ellipsis overflow-hidden white-space-nowrap"
+                            style="max-width: 100%;">
+                            {{cell.holidayName}}
+                        </div>
+                        <div *ngIf="cell.absentCount > 0"
+                            class="flex align-items-center gap-2 text-sm text-700 font-medium">
+                            <i class="pi pi-user-minus text-red-500"></i>
+                            <span>{{ cell.absentCount }}</span>
+                        </div>
+                        <div *ngIf="cell.lateCount > 0"
+                            class="flex align-items-center gap-2 text-sm text-700 font-medium">
+                            <i class="pi pi-clock text-orange-500"></i>
+                            <span>{{ cell.lateCount }}</span>
+                        </div>
+                    </div>
+
+                    <div *ngIf="cell.date" class="mt-auto text-center mb-1">
+                        <span class="px-2 py-1 border-round text-sm font-bold border-1 border-400 block w-max mx-auto"
+                            [ngStyle]="{ 'background-color': getSymbolColor(cell.type), 'color': '#333' }">
+                            {{cell.type}}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </ng-container>
+
+    <!-- STATE 2: EMPLOYEE LIST -->
+    <ng-container *ngIf="viewState === 'employeeList'">
+        <p-table #dt [value]="employees" [rows]="10" [paginator]="true" responsiveLayout="scroll"
+            [globalFilterFields]="['fullName','code','email']">
+            <ng-template pTemplate="caption">
+                <div class="flex justify-content-between align-items-center">
+                    <h5 class="m-0 text-700">Chọn nhân viên để xem/sửa lịch</h5>
+                    <p-iconfield iconPosition="left">
+                        <p-inputicon styleClass="pi pi-search"></p-inputicon>
+                        <input pInputText #searchInput type="text"
+                            (input)="dt.filterGlobal(searchInput.value, 'contains')"
+                            placeholder="Tìm kiếm nhân viên..." />
+                    </p-iconfield>
+                </div>
+            </ng-template>
+            <ng-template pTemplate="header">
+                <tr>
+                    <th>Mã NV</th>
+                    <th>Họ tên</th>
+                    <th>Phòng ban</th>
+                    <th>Chức vụ</th>
+                </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-emp>
+                <tr class="hover:surface-100 transition-duration-150 cursor-pointer" (click)="selectEmployeeForCalendar(emp)">
+                    <td class="font-semibold">{{ emp.code }}</td>
+                    <td>
+                        <div class="flex align-items-center gap-2">
+                            <span class="font-medium text-900">{{ emp.fullName }}</span>
+                        </div>
+                    </td>
+                    <td>{{ emp.department }}</td>
+                    <td>{{ emp.title }}</td>
+                </tr>
+            </ng-template>
+        </p-table>
+    </ng-container>
+
+    <!-- STATE 3: EMPLOYEE CALENDAR -->
+    <ng-container *ngIf="viewState === 'employeeCalendar'">
+        <div class="flex flex-column align-items-center bg-primary-50 border-round p-4 mb-4 shadow-1">
+            <h4 class="m-0 mb-2 text-primary-900 text-2xl font-bold">Lịch cá nhân: {{ selectedEmployee?.fullName }}</h4>
+            <div class="flex align-items-center gap-4 text-700">
+                <span class="font-medium"><i class="pi pi-briefcase mr-2"></i>{{ selectedEmployee?.title }}</span>
+                <span class="font-medium"><i class="pi pi-sitemap mr-2"></i>{{ selectedEmployee?.department }}</span>
+            </div>
+            <div class="mt-4 flex gap-3 text-lg font-bold">
+                <div class="bg-white px-3 py-2 border-round shadow-1 text-green-600">
+                    Tổng ngày công dự kiến: {{ totalEmployeeWorkDays }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Empty state within employee calendar -->
+        <div *ngIf="!isScheduleCreated" class="flex flex-column align-items-center justify-content-center py-6">
+            <h5 class="text-600">Tháng này nhân viên chưa được phân bổ lịch.</h5>
+        </div>
+
+        <div *ngIf="isScheduleCreated" class="w-full border-round overflow-hidden"
+            style="border: 1px solid var(--surface-d)">
+            <div class="flex bg-primary text-white p-3">
+                <div class="flex-1 text-center font-bold" *ngFor="let day of weekDays">{{day}}</div>
+            </div>
+            <div class="flex flex-wrap">
+                <div *ngFor="let cell of monthDays"
+                    class="flex flex-column p-2 border-right-1 border-bottom-1 border-300 cursor-pointer calendar-cell"
+                    style="width: 14.28%; height: 100px;" [ngClass]="{'bg-gray-100': cell.isPast, 'bg-surface-50': cell.isWeekend && !cell.isPast}"
                     (click)="openEditDialog(cell)">
 
-                    <!-- Hover Edit Overlay -->
                     <div class="edit-overlay" *ngIf="cell.date">
                         <i class="pi pi-pencil"></i>
                     </div>
 
-                    <div class="text-right text-600 font-bold text-sm">{{cell.date}}</div>
+                    <div class="flex justify-content-end mb-1">
+                        <div *ngIf="cell.date"
+                            class="text-center font-bold text-sm flex align-items-center justify-content-center"
+                            [ngClass]="{'bg-primary text-white border-circle': cell.isToday, 'text-600': !cell.isToday}"
+                            [style]="cell.isToday ? 'width: 1.5rem; height: 1.5rem;' : ''">
+                            {{cell.date}}
+                        </div>
+                    </div>
 
                     <div class="flex-grow-1 flex align-items-center justify-content-center overflow-hidden px-1">
                         <div *ngIf="cell.type === 'L' && cell.holidayName"
@@ -83,21 +183,23 @@
                         </div>
                     </div>
 
-                    <div *ngIf="cell.date" class="mt-auto text-center mb-2">
+                    <div *ngIf="cell.date" class="mt-auto text-center mb-1">
                         <span class="px-2 py-1 border-round text-sm font-bold border-1 border-400 block w-max mx-auto"
-                            [ngStyle]="{
-                                'background-color': getSymbolColor(cell.type),
-                                'color': '#333'
-                            }">
+                            [ngStyle]="{ 'background-color': getSymbolColor(cell.type), 'color': '#333' }">
                             {{cell.type}}
                         </span>
                     </div>
                 </div>
             </div>
+            <div class="p-3 border-top-1 border-300 flex justify-content-end bg-surface-50">
+                <button pButton pRipple label="Xác nhận và lưu lịch" icon="pi pi-check"
+                    class="p-button-success p-button-lg shadow-2" (click)="saveEmployeeCalendar()"></button>
+            </div>
         </div>
-    </div>
+    </ng-container>
 
-</div> <!-- End Calendar Card -->
+</div>
+
 
 <!-- WIZARD VIEW -->
 <ng-container *ngIf="viewState === 'wizard'">
@@ -108,38 +210,31 @@
             <h5 class="m-0">Tạo lịch đi làm tháng {{ currentMonth | date:'MM/yyyy' }}</h5>
         </div>
         <p-steps [model]="items" [(activeIndex)]="activeIndex" [readonly]="false" class="mb-5"></p-steps>
-
     </div>
     <div class="card mt-5">
         <!-- STEP 1 -->
-
         <div *ngIf="activeIndex === 0" class="p-fluid max-w-30rem mx-auto">
             <div class="field">
                 <label class="font-bold">Chọn phương án tạo lịch</label>
                 <p-select [options]="options" [(ngModel)]="selectedOption" optionLabel="label" optionValue="value"
                     styleClass="w-full"></p-select>
             </div>
-
             <div class="field" *ngIf="selectedOption === 2">
                 <label class="font-bold">Chọn phòng ban</label>
                 <p-select [options]="departments" [(ngModel)]="selectedDepartment" optionLabel="name"
                     placeholder="Chọn phòng ban..." styleClass="w-full"></p-select>
             </div>
-
             <div class="field" *ngIf="selectedOption === 3">
                 <label class="font-bold">Chọn nhân viên</label>
-                <p-select [options]="employees" [(ngModel)]="selectedEmployee" optionLabel="name"
+                <p-select [options]="employees" [(ngModel)]="selectedEmployee" optionLabel="fullName"
                     placeholder="Chọn nhân viên..." styleClass="w-full"></p-select>
             </div>
-
             <div class="flex justify-content-end mt-4">
                 <button pButton label="Tiếp tục" icon="pi pi-arrow-right" iconPos="right" (click)="next()"></button>
             </div>
         </div>
 
-
         <!-- STEP 2 -->
-
         <div *ngIf="activeIndex === 1" class="p-fluid max-w-30rem mx-auto">
             <div class="field" *ngIf="selectedOption === 1">
                 <label class="font-bold">Thiết lập mặc định (Toàn công ty)</label>
@@ -166,8 +261,8 @@
                 <label class="font-bold">Trích quyền cho Nhân viên tự điền</label>
                 <div class="p-3 bg-orange-50 text-orange-900 border-round mt-2">
                     Hệ thống sẽ tạo khung lịch trống cho <b>{{selectedEmployee?.name || 'Nhân viên'}}</b>. Nhân viên này
-                    sẽ nhận được thông báo yêu cầu tự điền lịch đặc biệt. Lịch này sau đó cần được Trưởng phòng (hoặc
-                    HR) duyệt lại.
+                    sẽ nhận được thông báo yêu cầu tự điền lịch đặc biệt. Lịch này sau đó cần được Trưởng phòng duyệt
+                    lại.
                 </div>
             </div>
 
@@ -178,9 +273,7 @@
             </div>
         </div>
 
-
         <!-- STEP 3 -->
-
         <div *ngIf="activeIndex === 2">
             <div class="flex flex-column align-items-center mb-4">
                 <h5 class="m-0">Bản xem trước Lịch làm việc</h5>
@@ -189,11 +282,10 @@
                     <span *ngIf="selectedOption === 2">Trạng thái (?) là các ngày đang chờ Trưởng phòng
                         <b>{{selectedDepartment?.name}}</b> điền.</span>
                     <span *ngIf="selectedOption === 3">Trạng thái (?) là các ngày đang chờ
-                        <b>{{selectedEmployee?.name}}</b> tự điền.</span>
+                        <b>{{selectedEmployee?.fullName}}</b> tự điền.</span>
                 </span>
             </div>
 
-            <!-- Custom Calendar Grid -->
             <div class="max-w-40rem mx-auto border-round overflow-hidden" style="border: 1px solid var(--surface-d)">
                 <div class="flex bg-primary text-primary-contrast p-2">
                     <div class="flex-1 text-center font-bold" *ngFor="let day of weekDays">{{day}}</div>
@@ -215,10 +307,7 @@
                         <div *ngIf="cell.date" class="mt-auto text-center mb-1">
                             <span
                                 class="px-2 py-1 border-round text-sm font-bold border-1 border-400 block w-max mx-auto"
-                                [ngStyle]="{
-                                'background-color': getSymbolColor(cell.type),
-                                'color': '#333'
-                            }">
+                                [ngStyle]="{ 'background-color': getSymbolColor(cell.type), 'color': '#333' }">
                                 {{cell.type}}
                             </span>
                         </div>
@@ -232,12 +321,10 @@
                 <button pButton label="Đăng lịch & Gửi thông báo" icon="pi pi-check" class="p-button-primary"
                     (click)="publish()"></button>
             </div>
-
         </div>
     </div>
-
-
 </ng-container>
+
 <!-- Edit Cell Dialog -->
 <p-dialog header="Chỉnh sửa ký hiệu" [(visible)]="displayEditDialog" [modal]="true" [style]="{width: '450px'}">
     <div class="p-fluid mt-2">
@@ -276,4 +363,63 @@
             (click)="displayEditDialog = false"></button>
         <button pButton pRipple label="Lưu" icon="pi pi-check" class="p-button-primary" (click)="saveCell()"></button>
     </ng-template>
+</p-dialog>
+
+<!-- Day Details Dialog -->
+<p-dialog header="Chi tiết ngày {{selectedDayDetails?.date}}/{{currentMonth | date:'MM/yyyy'}}" [(visible)]="displayDayDetailsDialog" [modal]="true" [style]="{width: '700px'}">
+    
+    <div class="mb-4" *ngIf="absentList.length > 0">
+        <h5 class="text-900"><i class="pi pi-user-minus mr-2 text-red-500"></i>Danh sách nhân viên vắng mặt ({{absentList.length}})</h5>
+        <p-table [value]="absentList" responsiveLayout="scroll" styleClass="p-datatable-sm no-border-table">
+            <ng-template pTemplate="header">
+                <tr>
+                    <th>Nhân viên</th>
+                    <th>Phòng ban</th>
+                    <th class="text-center">Trạng thái</th>
+                </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-emp>
+                <tr>
+                    <td>
+                        <div class="flex align-items-center gap-2">
+                            <span class="font-medium text-900">{{ emp.fullName }}</span>
+                        </div>
+                    </td>
+                    <td>{{ emp.department }}</td>
+                    <td class="text-center">
+                        <p-tag [severity]="emp.leaveType === 'Có phép' ? 'success' : 'danger'" [value]="emp.leaveType"></p-tag>
+                    </td>
+                </tr>
+            </ng-template>
+        </p-table>
+    </div>
+
+    <div *ngIf="lateList.length > 0">
+        <h5 class="text-900"><i class="pi pi-clock mr-2 text-orange-500"></i>Danh sách nhân viên đi trễ ({{lateList.length}})</h5>
+        <p-table [value]="lateList" responsiveLayout="scroll" styleClass="p-datatable-sm no-border-table">
+            <ng-template pTemplate="header">
+                <tr>
+                    <th>Nhân viên</th>
+                    <th>Phòng ban</th>
+                    <th class="text-center">Giờ check-in</th>
+                </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-emp>
+                <tr>
+                    <td>
+                        <div class="flex align-items-center gap-2">
+                            <span class="font-medium text-900">{{ emp.fullName }}</span>
+                        </div>
+                    </td>
+                    <td>{{ emp.department }}</td>
+                    <td class="font-bold text-900 text-center">{{ emp.checkInTime }}</td>
+                </tr>
+            </ng-template>
+        </p-table>
+    </div>
+
+    <div *ngIf="absentList.length === 0 && lateList.length === 0" class="text-center py-5">
+        <i class="pi pi-check-circle text-green-500" style="font-size: 3rem"></i>
+        <h5 class="mt-3 text-700">Tất cả nhân viên đi làm đầy đủ và đúng giờ</h5>
+    </div>
 </p-dialog>

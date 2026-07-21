@@ -74,9 +74,24 @@ export class Attendance implements OnInit {
         if (isWeekend) type = 'OFF';
         
         let isToday = i === this.today.getDate();
-        
         let isPast = i < this.today.getDate();
         
+        let checkIn = null;
+        let checkOut = null;
+        let totalHours = null;
+        if (isPast && !isWeekend) {
+            // Generate random check-in around 8:00 - 8:30
+            const inMin = Math.floor(Math.random() * 30).toString().padStart(2, '0');
+            checkIn = `08:${inMin}`;
+            
+            // Generate random check-out around 17:30 - 18:30
+            const outHour = Math.floor(Math.random() * 2) + 17;
+            const outMin = Math.floor(Math.random() * 60).toString().padStart(2, '0');
+            checkOut = `${outHour}:${outMin}`;
+            
+            totalHours = this.calculateTotalHours(checkIn, checkOut);
+        }
+
         this.employeeSchedule.push({
             date: i,
             type: type,
@@ -85,9 +100,25 @@ export class Attendance implements OnInit {
             isPast: isPast,
             isPresent: false,
             isAbsent: false,
-            leaveReason: null
+            leaveReason: null,
+            checkIn: checkIn,
+            checkOut: checkOut,
+            totalHours: totalHours
         });
     }
+  }
+
+  calculateTotalHours(checkIn: string, checkOut: string): string {
+    if (!checkIn || !checkOut) return null;
+    const [inH, inM] = checkIn.split(':').map(Number);
+    const [outH, outM] = checkOut.split(':').map(Number);
+    
+    let diffMins = (outH * 60 + outM) - (inH * 60 + inM);
+    if (diffMins < 0) return '00:00 hrs'; 
+    
+    const h = Math.floor(diffMins / 60);
+    const m = diffMins % 60;
+    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')} hrs`;
   }
 
   getSymbolColor(type: string): string {
@@ -108,6 +139,8 @@ export class Attendance implements OnInit {
     const todayCell = this.employeeSchedule.find(c => c.isToday);
     if (todayCell) {
       todayCell.isPresent = true;
+      const now = new Date();
+      todayCell.checkIn = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
     }
 
     setTimeout(() => {
@@ -131,6 +164,9 @@ export class Attendance implements OnInit {
       todayCell.isPresent = false;
       todayCell.isAbsent = false;
       todayCell.leaveReason = null;
+      todayCell.checkIn = null;
+      todayCell.checkOut = null;
+      todayCell.totalHours = null;
     }
   }
 }

@@ -9,6 +9,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { TooltipModule } from 'primeng/tooltip';
+import { DatabaseService, Employee } from '../../../core/services/database.service';
 
 @Component({
   selector: 'app-employees',
@@ -31,12 +32,12 @@ import { TooltipModule } from 'primeng/tooltip';
 export class Employees implements OnInit {
   departmentId: string | null = null;
   departmentName: string = '';
-  employees: any[] = [];
+  employees: Employee[] = [];
   
   displayDetailDialog: boolean = false;
   selectedEmployee: any = null;
 
-  constructor(private route: ActivatedRoute) {}
+  constructor(private route: ActivatedRoute, private db: DatabaseService) {}
 
   ngOnInit() {
     this.route.paramMap.subscribe(params => {
@@ -46,20 +47,17 @@ export class Employees implements OnInit {
   }
 
   loadDepartmentData() {
-    // In a real app, you would fetch this data from an API based on departmentId
-    if (this.departmentId === '1') {
-      this.departmentName = 'Phòng IT';
-      this.employees = [
-        { id: 101, code: 'NV001', name: 'Nguyễn Văn A', position: 'Software Engineer', email: 'nva@company.com', phone: '0901234567', status: 'Làm việc' },
-        { id: 102, code: 'NV002', name: 'Trần Thị B', position: 'QA Engineer', email: 'ttb@company.com', phone: '0901234568', status: 'Làm việc' },
-        { id: 103, code: 'NV003', name: 'Lê Văn C', position: 'DevOps', email: 'lvc@company.com', phone: '0901234569', status: 'Nghỉ thai sản' }
-      ];
-    } else {
-      this.departmentName = 'Phòng ban ' + this.departmentId;
-      this.employees = [
-        { id: 201, code: 'NV004', name: 'Nhân viên Demo', position: 'Staff', email: 'demo@company.com', phone: '0900000000', status: 'Làm việc' }
-      ];
-    }
+    this.db.employees$.subscribe(allEmployees => {
+      if (this.departmentId === '1') {
+        this.departmentName = 'Phòng Công nghệ & Hệ thống Dữ liệu (IT Sys)';
+        this.employees = this.db.getEmployeesByDepartment('IT');
+      } else {
+        // Fallback or handle other departments
+        this.departmentName = 'Phòng ban ' + this.departmentId;
+        // For demo, just show some random employees or all
+        this.employees = allEmployees.slice(0, 10);
+      }
+    });
   }
 
   viewDetails(employee: any) {
