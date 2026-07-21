@@ -1,0 +1,101 @@
+﻿STT,Mã NV,Họ và tên,Phòng ban,Chức danh,Email
+1,NV001,Nguyễn Văn An,Ban Giám đốc,Admin (Tổng Giám đốc),an.nguyen@tpc.com
+2,NV002,Trần Thị Bình,Ban Giám đốc,Admin (Phó Giám đốc),binh.tran@tpc.com
+3,NV003,Lê Hoàng Cường,Phòng Tuyển dụng IT,Trưởng phòng,cuong.le@tpc.com
+4,NV004,Phạm Dung,Phòng Tuyển dụng IT,Phó phòng,dung.pham@tpc.com
+5,NV005,Hoàng Minh Đức,Phòng Tuyển dụng IT,HR (Senior Headhunter),duc.hoang@tpc.com
+6,NV006,Vũ Thùy Dương,Phòng Tuyển dụng IT,HR (Headhunter),duong.vu@tpc.com
+7,NV007,Đặng Quốc Dung,Phòng Tuyển dụng IT,HR (Headhunter),dung.dang@tpc.com
+8,NV008,Bùi Mỹ Duyên,Phòng Tuyển dụng IT,HR (Headhunter),duyen.bui@tpc.com
+9,NV009,Đỗ Văn Giang,Phòng Tuyển dụng IT,HR (Associate),giang.do@tpc.com
+10,NV010,Ngô Thu Hà,Phòng Tuyển dụng IT,HR (Associate),ha.ngo@tpc.com
+11,NV011,Dương Minh Hải,Phòng Tuyển dụng IT,HR (Associate),hai.duong@tpc.com
+12,NV012,Lý Thị Hằng,Phòng Tuyển dụng IT,HR (Intern),hang.ly@tpc.com
+13,NV013,Trịnh Văn Hiếu,Phòng Tuyển dụng IT,HR (Intern),hieu.trinh@tpc.com
+14,NV014,Đinh Thị Hoa,Phòng Tuyển dụng Tài chính - Ngân hàng,Trưởng phòng,hoa.dinh@tpc.com
+15,NV015,Phan Văn Hoàng,Phòng Tuyển dụng Tài chính - Ngân hàng,HR (Senior Headhunter),hoang.phan@tpc.com
+16,NV016,Võ Thị Huệ,Phòng Tuyển dụng Tài chính - Ngân hàng,HR (Headhunter),hue.vo@tpc.com
+17,NV017,Nguyễn Khánh Hùng,Phòng Tuyển dụng Tài chính - Ngân hàng,HR (Headhunter),hung.nguyen@tpc.com
+18,NV018,Trần Thu Hương,Phòng Tuyển dụng Tài chính - Ngân hàng,HR (Headhunter),huong.tran@tpc.com
+19,NV019,Lê Văn Huy,Phòng Tuyển dụng Tài chính - Ngân hàng,HR (Associate),huy.le@tpc.com
+20,NV020,Phạm Thị Huyền,Phòng Tuyển dụng Tài chính - Ngân hàng,HR (Associate),huyen.pham@tpc.com
+21,NV021,Hoàng Quốc Khánh,Phòng Tuyển dụng Khối Sản xuất & Bán lẻ,Trưởng phòng,khanh.hoang@tpc.com
+22,NV022,Vũ Thị Lan,Phòng Tuyển dụng Khối Sản xuất & Bán lẻ,HR (Senior Headhunter),lan.vu@tpc.com
+23,NV023,Đặng Văn Lâm,Phòng Tuyển dụng Khối Sản xuất & Bán lẻ,HR (Headhunter),lam.dang@tpc.com
+24,NV024,Bùi Thị Linh,Phòng Tuyển dụng Khối Sản xuất & Bán lẻ,HR (Headhunter),linh.bui@tpc.com
+25,NV025,Đỗ Thành Long,Phòng Tuyển dụng Khối Sản xuất & Bán lẻ,HR (Headhunter),long.do@tpc.com
+26,NV026,Trần Hải My,Phòng Tuyển dụng Khối Sản xuất & Bán lẻ,HR (Associate),my.tran@tpc.com
+27,NV027,Dương Văn Nam,Phòng Tuyển dụng Khối Sản xuất & Bán lẻ,HR (Associate),nam.duong@tpc.com
+28,NV028,Lý Thu Nga,Phòng Tuyển dụng Khối Sản xuất & Bán lẻ,HR (Intern),nga.ly@tpc.com
+29,NV029,Trịnh Minh Nghĩa,Phòng Tuyển dụng Cấp cao (Executive Search),Trưởng phòng,nghia.trinh@tpc.com
+30,NV030,Đinh Thị Nhung,Phòng Tuyển dụng Cấp cao (Executive Search),HR (Senior Consultant),nhung.dinh@tpc.com
+31,NV031,Phan Văn Ninh,Phòng Tuyển dụng Cấp cao (Executive Search),HR (Senior Consultant),ninh.phan@tpc.com
+32,NV032,Võ Thị Oanh,Phòng Tuyển dụng Cấp cao (Executive Search),HR (Consultant),oanh.vo@tpc.com
+33,NV033,Nguyễn Văn Phong,Phòng Tuyển dụng Cấp cao (Executive Search),HR (Consultant),phong.nguyen@tpc.com
+34,NV034,Trần Thị Phương,Phòng Tuyển dụng Cấp cao (Executive Search),HR (Associate),phuong.tran@tpc.com
+35,NV035,Lê Hồng Quân,Phòng Tuyển dụng Cấp cao (Executive Search),HR (Researcher),quan.le@tpc.com
+36,NV036,Phạm Thúy Quyên,Phòng Tuyển dụng Cấp cao (Executive Search),HR (Researcher),quyen.pham@tpc.com
+37,NV037,Hoàng Văn Quỳnh,Phòng Tuyển dụng Mass (Tuyển số lượng lớn),Trưởng phòng,quynh.hoang@tpc.com
+38,NV038,Vũ Thị Sang,Phòng Tuyển dụng Mass (Tuyển số lượng lớn),HR (Team Lead),sang.vu@tpc.com
+39,NV039,Đặng Văn Sơn,Phòng Tuyển dụng Mass (Tuyển số lượng lớn),HR (Recruiter),son.dang@tpc.com
+40,NV040,Bùi Thị Tâm,Phòng Tuyển dụng Mass (Tuyển số lượng lớn),HR (Recruiter),tam.bui@tpc.com
+41,NV041,Đỗ Đức Thái,Phòng Tuyển dụng Mass (Tuyển số lượng lớn),HR (Recruiter),thai.do@tpc.com
+42,NV042,Ngô Thị Thảo,Phòng Tuyển dụng Mass (Tuyển số lượng lớn),HR (Recruiter),thao.ngo@tpc.com
+43,NV043,Dương Văn Thành,Phòng Tuyển dụng Mass (Tuyển số lượng lớn),HR (Recruiter),thanh.duong@tpc.com
+44,NV044,Lý Thu Thủy,Phòng Tuyển dụng Mass (Tuyển số lượng lớn),HR (Recruiter),thuy.ly@tpc.com
+45,NV045,Trịnh Văn Thắng,Phòng Tuyển dụng Mass (Tuyển số lượng lớn),HR (Assistant),thang.trinh@tpc.com
+46,NV046,Đinh Thị Trâm,Phòng Tuyển dụng Mass (Tuyển số lượng lớn),HR (Assistant),tram.dinh@tpc.com
+47,NV047,Phan Văn Trung,Phòng Hành chính - Nhân sự nội bộ,Trưởng phòng,trung.phan@tpc.com
+48,NV048,Võ Thị Tú,Phòng Hành chính - Nhân sự nội bộ,Admin (Trưởng nhóm Hành chính),tu.vo@tpc.com
+49,NV049,Nguyễn Văn Tuấn,Phòng Hành chính - Nhân sự nội bộ,HR (C&B Specialist - Lương & Phúc lợi),tuan.nguyen@tpc.com
+50,NV050,Trần Thị Tuyết,Phòng Hành chính - Nhân sự nội bộ,HR (Internal Recruiter - Tuyển dụng nội bộ),tuyet.tran@tpc.com
+51,NV051,Lê Văn Tùng,Phòng Hành chính - Nhân sự nội bộ,Admin (Chuyên viên Lễ tân/Văn phòng),tung.le@tpc.com
+52,NV052,Phạm Thị Uyên,Phòng Hành chính - Nhân sự nội bộ,Admin (Quản trị Văn phòng),uyen.pham@tpc.com
+53,NV053,Hoàng Quốc Việt,Phòng Hành chính - Nhân sự nội bộ,HR (Training Executive - Đào tạo),viet.hoang@tpc.com
+54,NV054,Vũ Thị Xuân,Phòng Hành chính - Nhân sự nội bộ,Admin (Pháp lý & Hợp đồng),xuan.vu@tpc.com
+55,NV055,Đặng Văn Yên,Phòng Hành chính - Nhân sự nội bộ,Admin (Quản trị Cơ sở vật chất),yen.dang@tpc.com
+56,NV056,Bùi Thị Hải Yến,Phòng Phát triển Kinh doanh (B2B Sales),Trưởng phòng,yen.bui@tpc.com
+57,NV057,Đỗ Minh Anh,Phòng Phát triển Kinh doanh (B2B Sales),Phó phòng,anh.do@tpc.com
+58,NV058,Ngô Thị Bảo,Phòng Phát triển Kinh doanh (B2B Sales),HR (Account Manager),bao.ngo@tpc.com
+59,NV059,Dương Văn Công,Phòng Phát triển Kinh doanh (B2B Sales),HR (Account Manager),cong.duong@tpc.com
+60,NV060,Lý Thị Bích,Phòng Phát triển Kinh doanh (B2B Sales),HR (Sales Executive),bich.ly@tpc.com
+61,NV061,Trịnh Văn Đạt,Phòng Phát triển Kinh doanh (B2B Sales),HR (Sales Executive),dat.trinh@tpc.com
+62,NV062,Đinh Thị Đoan,Phòng Phát triển Kinh doanh (B2B Sales),HR (Sales Executive),doan.dinh@tpc.com
+63,NV063,Phan Văn Đông,Phòng Phát triển Kinh doanh (B2B Sales),HR (Sales Executive),dong.phan@tpc.com
+64,NV064,Võ Thị Giang,Phòng Phát triển Kinh doanh (B2B Sales),HR (Customer Care),giang.vo@tpc.com
+65,NV065,Nguyễn Văn Hà,Phòng Marketing & Employer Branding,Trưởng phòng,ha.nguyen@tpc.com
+66,NV066,Trần Thị Hảo,Phòng Marketing & Employer Branding,Admin (Content Specialist),hao.tran@tpc.com
+67,NV067,Lê Văn Hậu,Phòng Marketing & Employer Branding,Admin (Digital Marketing),hau.le@tpc.com
+68,NV068,Phạm Thị Hiền,Phòng Marketing & Employer Branding,Admin (Event Specialist),hien.pham@tpc.com
+69,NV069,Hoàng Văn Hoài,Phòng Marketing & Employer Branding,Admin (Graphic Designer),hoai.hoang@tpc.com
+70,NV070,Vũ Thị Hồng,Phòng Marketing & Employer Branding,Admin (Media & Video Editor),hong.vu@tpc.com
+71,NV071,Đặng Văn Hùng,Phòng Tài chính - Kế toán,Trưởng phòng,hung.dang@tpc.com
+72,NV072,Bùi Thị Hương,Phòng Tài chính - Kế toán,Admin (Kế toán tổng hợp),huong.bui@tpc.com
+73,NV073,Đỗ Văn Hữu,Phòng Tài chính - Kế toán,Admin (Kế toán thanh toán),huu.do@tpc.com
+74,NV074,Ngô Thị Khanh,Phòng Tài chính - Kế toán,Admin (Kế toán thuế),khanh.ngo@tpc.com
+75,NV075,Dương Văn Khoa,Phòng Tài chính - Kế toán,Admin (Thủ quỹ),khoa.duong@tpc.com
+76,NV076,Lý Thị Khôi,Phòng Công nghệ & Hệ thống Dữ liệu (IT Sys),Trưởng phòng,khoi.ly@tpc.com
+77,NV077,Trịnh Văn Kiên,Phòng Công nghệ & Hệ thống Dữ liệu (IT Sys),Admin (System Administrator),kien.trinh@tpc.com
+78,NV078,Đinh Thị Kiều,Phòng Công nghệ & Hệ thống Dữ liệu (IT Sys),Admin (Data Analyst - HR Analytics),kieu.dinh@tpc.com
+79,NV079,Phan Văn Lộc,Phòng Công nghệ & Hệ thống Dữ liệu (IT Sys),Admin (IT Support),loc.phan@tpc.com
+80,NV080,Võ Thị Luân,Phòng Công nghệ & Hệ thống Dữ liệu (IT Sys),Admin (Web Master),luan.vo@tpc.com
+81,NV081,Nguyễn Văn Lương,Phòng Tuyển dụng Quốc tế (Overseas tpc),Trưởng phòng,luong.nguyen@tpc.com
+82,NV082,Trần Thị Ly,Phòng Tuyển dụng Quốc tế (Overseas tpc),HR (Senior Headhunter),ly.tran@tpc.com
+83,NV083,Lê Văn Mạnh,Phòng Tuyển dụng Quốc tế (Overseas tpc),HR (Headhunter),manh.le@tpc.com
+84,NV084,Phạm Thị Nga,Phòng Tuyển dụng Quốc tế (Overseas tpc),HR (Headhunter),nga.pham@tpc.com
+85,NV085,Hoàng Văn Ngân,Phòng Tuyển dụng Quốc tế (Overseas tpc),HR (Associate),ngan.hoang@tpc.com
+86,NV086,Vũ Thị Ngọc,Phòng Tuyển dụng Bán thời gian & Freelance,Trưởng phòng,ngoc.vu@tpc.com
+87,NV087,Đặng Văn Nhân,Phòng Tuyển dụng Bán thời gian & Freelance,HR (Recruiter),nhan.dang@tpc.com
+88,NV088,Bùi Thị Nữ,Phòng Tuyển dụng Bán thời gian & Freelance,HR (Recruiter),nu.bui@tpc.com
+89,NV089,Đỗ Văn Pháp,Phòng Tuyển dụng Bán thời gian & Freelance,HR (Recruiter),phap.do@tpc.com
+90,NV090,Ngô Thị Phi,Phòng Tuyển dụng Bán thời gian & Freelance,HR (Associate),phi.ngo@tpc.com
+91,NV091,Dương Văn Phúc,Chi nhánh Miền Trung (Đà Nẵng),Trưởng phòng (Giám đốc chi nhánh),phuc.duong@tpc.com
+92,NV092,Lý Thị Phượng,Chi nhánh Miền Trung (Đà Nẵng),Admin (Hành chính Tổng hợp),phuong.ly@tpc.com
+93,NV093,Trịnh Văn Quý,Chi nhánh Miền Trung (Đà Nẵng),HR (Senior Headhunter),quy.trinh@tpc.com
+94,NV094,Đinh Thị Sang,Chi nhánh Miền Trung (Đà Nẵng),HR (Headhunter),sang.dinh@tpc.com
+95,NV095,Phan Văn Sinh,Chi nhánh Miền Trung (Đà Nẵng),HR (Headhunter),sinh.phan@tpc.com
+96,NV096,Võ Thị Sơn,Chi nhánh Miền Bắc (Hà Nội),Trưởng phòng (Giám đốc chi nhánh),son.vo@tpc.com
+97,NV097,Nguyễn Văn Tâm,Chi nhánh Miền Bắc (Hà Nội),Admin (Hành chính),tam.nguyen@tpc.com
+98,NV098,Trần Thị Tân,Chi nhánh Miền Bắc (Hà Nội),HR (Senior Headhunter),tan.tran@tpc.com
+99,NV099,Lê Văn Thái,Chi nhánh Miền Bắc (Hà Nội),HR (Headhunter),thai.le@tpc.com
+100,NV100,Phạm Thị Thắm,Chi nhánh Miền Bắc (Hà Nội),HR (Headhunter),tham.pham@tpc.com

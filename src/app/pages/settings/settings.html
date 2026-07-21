@@ -1,0 +1,31 @@
+<div class="grid">
+    <div class="col-12">
+        <div class="card">
+            <div class="flex justify-content-between align-items-center mb-4">
+                <h2 class="m-0">Cài đặt tài khoản</h2>
+                <button pButton label="Đăng xuất" icon="pi pi-sign-out" class="p-button-danger p-button-outlined" (click)="logout()" style="width: auto;"></button>
+            </div>
+            
+            <div class="p-fluid">
+                <div class="field mb-4">
+                    <label for="email" class="font-bold mb-2 block">Email</label>
+                    <input pInputText id="email" type="text" [value]="currentUser()?.email" disabled />
+                </div>
+                
+                <div class="field mb-4">
+                    <label for="role" class="font-bold mb-2 block">Vai trò</label>
+                    <input pInputText id="role" type="text" [value]="currentUser()?.roleLabel" disabled />
+                </div>
+
+                <div class="field mb-4">
+                    <label for="name" class="font-bold mb-2 block">Họ và tên</label>
+                    <input pInputText id="name" type="text" [(ngModel)]="editName" />
+                </div>
+                
+                <div class="flex justify-content-end mt-4">
+                    <button pButton label="Lưu thay đổi" icon="pi pi-check" (click)="saveProfile()" style="width: auto;"></button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

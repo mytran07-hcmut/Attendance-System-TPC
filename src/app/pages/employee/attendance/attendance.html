@@ -67,26 +67,36 @@
             <div *ngFor="let cell of employeeSchedule"
                 class="flex flex-column p-2 border-right-1 border-bottom-1 border-300 relative"
                 style="width: 14.28%; height: 120px;" [ngClass]="{
-                    'bg-surface-100': cell.isWeekend && !cell.isPast && !cell.isPresent && !cell.isAbsent,
-                    'bg-gray-200': cell.isPast || cell.isPresent,
-                    'bg-red-100': cell.isAbsent,
-                    'border-1 border-primary z-1': cell.isToday
+                    'bg-surface-50': cell.isWeekend && !cell.isPast && !cell.isPresent && !cell.isAbsent,
+                    'bg-gray-100': cell.isPast || cell.isPresent,
+                    'bg-red-100': cell.isAbsent
                 }" [pTooltip]="cell.leaveReason" tooltipPosition="top">
 
-                <div *ngIf="cell.isToday"
-                    class="absolute top-0 right-0 bg-primary text-white text-xs px-2 py-1 border-round-bottom-left font-bold z-1 shadow-1">
-                    Hôm nay
+                <div class="flex justify-content-between align-items-start mb-1">
+                    <div class="text-600 text-xs font-semibold mt-1">
+                        <span *ngIf="cell.totalHours">{{cell.totalHours}}</span>
+                    </div>
+                    <div *ngIf="cell.date"
+                        class="text-center font-bold text-sm flex align-items-center justify-content-center"
+                        [ngClass]="{'bg-primary text-white border-circle': cell.isToday, 'text-600': !cell.isToday}"
+                        [style]="cell.isToday ? 'width: 1.5rem; height: 1.5rem;' : ''">
+                        {{cell.date}}
+                    </div>
                 </div>
 
-                <div class="text-right text-600 font-bold text-sm" [ngClass]="{'text-primary text-lg': cell.isToday}">
-                    {{cell.date}}
-                </div>
-
-                <div class="flex-grow-1 flex align-items-center justify-content-center overflow-hidden px-1">
+                <div class="flex-grow-1 flex flex-column justify-content-center overflow-hidden px-1 gap-1 mt-1">
                     <div *ngIf="cell.type === 'L'"
                         class="text-sm text-600 text-center font-italic text-overflow-ellipsis overflow-hidden white-space-nowrap"
                         style="max-width: 100%;">
                         Nghỉ Lễ
+                    </div>
+                    <div *ngIf="cell.checkIn" class="flex align-items-center gap-2 text-xs text-700 font-medium">
+                        <i class="pi pi-sign-in text-blue-500"></i>
+                        <span>{{ cell.checkIn }}</span>
+                    </div>
+                    <div *ngIf="cell.checkOut" class="flex align-items-center gap-2 text-xs text-700 font-medium">
+                        <i class="pi pi-sign-out text-green-500"></i>
+                        <span>{{ cell.checkOut }}</span>
                     </div>
                 </div>
 

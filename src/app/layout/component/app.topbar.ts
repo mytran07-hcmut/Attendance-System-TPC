@@ -5,6 +5,7 @@ import { CommonModule } from '@angular/common';
 import { StyleClassModule } from 'primeng/styleclass';
 import { AppConfigurator } from './app.configurator';
 import { LayoutService } from '@/app/layout/service/layout.service';
+import { AuthService } from '../../core/services/auth';
 
 @Component({
     selector: 'app-topbar',
@@ -46,8 +47,12 @@ import { LayoutService } from '@/app/layout/service/layout.service';
                 <i class="pi pi-bell"></i>
             </button>
 
-            <button class="layout-topbar-action p-0 border-circle border-2 border-primary overflow-hidden flex align-items-center justify-content-center bg-white" style="width: 2.5rem; height: 2.5rem;">
-                <i class="pi pi-user text-primary" style="font-size: 1.2rem;"></i>
+            <button routerLink="/settings" class="layout-topbar-action p-0 border-circle border-2 border-primary overflow-hidden flex align-items-center justify-content-center bg-primary hover:bg-primary-reverse transition-colors transition-duration-150" style="width: 2.5rem; height: 2.5rem; color: var(--primary-color-text); font-weight: bold; font-size: 1.2rem;">
+                @if (currentUser()) {
+                    {{ currentUser()!.name.charAt(0).toUpperCase() }}
+                } @else {
+                    <i class="pi pi-user text-primary" style="font-size: 1.2rem;"></i>
+                }
             </button>
         </div>
     </div>`
@@ -56,6 +61,9 @@ export class AppTopbar {
     items!: MenuItem[];
 
     layoutService = inject(LayoutService);
+    authService = inject(AuthService);
+
+    currentUser = this.authService.currentUserSignal;
 
     toggleDarkMode() {
         this.layoutService.layoutConfig.update((state) => ({

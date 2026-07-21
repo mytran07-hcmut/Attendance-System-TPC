@@ -12,15 +12,15 @@ import { AuthService, User } from '../../core/services/auth';
     imports: [AppMenu, RouterModule, CommonModule],
     template: `
         <div class="layout-sidebar">
-            @if (currentUser) {
+            @if (currentUser()) {
                 <div class="sidebar-profile">
                     <div class="profile-avatar">
-                        {{ currentUser.name.charAt(0).toUpperCase() }}
+                        {{ currentUser()!.name.charAt(0).toUpperCase() }}
                     </div>
                     <div class="profile-info">
-                        <span class="profile-name">{{ currentUser.name }}</span>
-                        @if (currentUser.roleLabel) {
-                            <span class="profile-role" [ngClass]="currentUser.role">{{ currentUser.roleLabel }}</span>
+                        <span class="profile-name">{{ currentUser()!.name }}</span>
+                        @if (currentUser()!.roleLabel) {
+                            <span class="profile-role" [ngClass]="currentUser()!.role">{{ currentUser()!.roleLabel }}</span>
                         }
                     </div>
                 </div>
@@ -91,7 +91,7 @@ export class AppSidebar implements OnInit, OnDestroy {
     
     authService = inject(AuthService);
 
-    currentUser: User | null = null;
+    currentUser = this.authService.currentUserSignal;
 
     private outsideClickListener: ((event: MouseEvent) => void) | null = null;
 
@@ -118,8 +118,6 @@ export class AppSidebar implements OnInit, OnDestroy {
     }
 
     ngOnInit() {
-        this.currentUser = this.authService.getCurrentUser();
-        
         this.router.events
             .pipe(
                 filter((event) => event instanceof NavigationEnd),
