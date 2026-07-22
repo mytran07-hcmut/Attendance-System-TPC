@@ -1,0 +1,65 @@
+<p-toast></p-toast>
+<div class="grid">
+    <div class="col-12">
+        <div class="card mb-4 border-2 border-primary border-round-xl">
+            <h4 class="text-primary"><i class="pi pi-calendar-clock mr-2"></i>Quản lý lịch làm việc phòng ban ({{department}})</h4>
+            
+            <div *ngIf="!pendingRequest" class="flex flex-column align-items-center p-5 text-center">
+                <i class="pi pi-check-circle text-green-500 text-6xl mb-3"></i>
+                <h5 class="text-700">Hiện tại không có yêu cầu điền lịch nào từ HR.</h5>
+            </div>
+
+            <div *ngIf="pendingRequest" class="mt-4">
+                <div class="flex justify-content-between align-items-center mb-4">
+                    <div class="text-lg font-medium text-700">
+                        <span class="mr-2">Trạng thái:</span>
+                        <p-tag *ngIf="pendingRequest.status === 'PENDING_HEAD'" value="Cần điền lịch" severity="danger"></p-tag>
+                        <p-tag *ngIf="pendingRequest.status === 'PENDING_HR'" value="Chờ HR duyệt" severity="warning"></p-tag>
+                        <p-tag *ngIf="pendingRequest.status === 'APPROVED'" value="Đã duyệt" severity="success"></p-tag>
+                    </div>
+                    <button pButton pRipple *ngIf="pendingRequest.status === 'PENDING_HEAD'" 
+                            label="Gửi HR duyệt" icon="pi pi-send" 
+                            class="p-button-success border-round-xl px-4 font-bold" 
+                            (click)="submitSchedule()"></button>
+                </div>
+
+                <div class="grid calendar-grid p-2">
+                    <div class="col-12 flex bg-gray-50 border-round font-bold text-700 p-2 mb-2">
+                        <div class="flex-1 text-center" *ngFor="let day of weekDays">{{day}}</div>
+                    </div>
+                    
+                    <div class="col-12 flex flex-wrap" *ngIf="schedule.length > 0">
+                        <div class="calendar-cell p-2 flex flex-column border-1 border-gray-200 border-round m-1" 
+                             style="width: calc(14.28% - 0.5rem); min-height: 80px;"
+                             [ngClass]="{'cursor-pointer hover:shadow-2 transition-duration-150': pendingRequest.status === 'PENDING_HEAD' && day.date}"
+                             *ngFor="let day of schedule"
+                             (click)="toggleDay(day)">
+                            
+                            <div class="text-right font-medium text-600 mb-2">{{day.date}}</div>
+                            
+                            <div *ngIf="day.date" class="mt-auto w-full text-center p-1 border-round text-sm font-bold"
+                                 [ngStyle]="{'background-color': day.type === 'HC' ? '#f4cccc' : (day.type === 'OFF' ? '#d9d2e9' : '#fff')}">
+                                {{day.type === 'HC' ? 'Hành chính' : 'Ngày nghỉ'}}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex gap-4 mt-4 bg-gray-50 p-3 border-round">
+                    <div class="flex align-items-center gap-2">
+                        <div class="w-2rem h-1rem border-round" style="background-color: #f4cccc"></div>
+                        <span class="text-sm font-medium">Hành chính (HC)</span>
+                    </div>
+                    <div class="flex align-items-center gap-2">
+                        <div class="w-2rem h-1rem border-round" style="background-color: #d9d2e9"></div>
+                        <span class="text-sm font-medium">Ngày nghỉ tuần (OFF)</span>
+                    </div>
+                    <div *ngIf="pendingRequest.status === 'PENDING_HEAD'" class="ml-auto text-sm text-500 font-italic">
+                        <i class="pi pi-info-circle mr-1"></i> Nhấn vào ngày để đổi loại ca
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>

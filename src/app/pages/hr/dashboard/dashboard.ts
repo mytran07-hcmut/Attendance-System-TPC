@@ -9,15 +9,19 @@ import { TooltipModule } from 'primeng/tooltip';
 import { InputTextModule } from 'primeng/inputtext';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
-
+import { ToastModule } from 'primeng/toast';
+import { MessageService } from 'primeng/api';
+import { DatabaseService, DepartmentRequest } from '../../../core/services/database.service';
 @Component({
   selector: 'app-hr-dashboard',
   standalone: true,
-  imports: [CommonModule, TableModule, ButtonModule, TagModule, DialogModule, RouterModule, TooltipModule, InputTextModule, IconFieldModule, InputIconModule],
+  imports: [CommonModule, TableModule, ButtonModule, TagModule, DialogModule, RouterModule, TooltipModule, InputTextModule, IconFieldModule, InputIconModule, ToastModule],
+  providers: [MessageService],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss'
 })
 export class Dashboard {
+  departmentScheduleRequests: DepartmentRequest[] = [];
   pendingRequests = [
     { id: 1, employee: 'Nguyễn Văn A', department: 'IT', type: 'Xin nghỉ phép', reason: 'Nghỉ ốm', date: '10/08/2026', status: 'Chờ duyệt' },
     { id: 2, employee: 'Trần Thị B', department: 'Kế toán', type: 'Đăng ký làm thêm', reason: 'Xử lý báo cáo tháng', date: '12/08/2026', status: 'Chờ duyệt' },
@@ -41,6 +45,17 @@ export class Dashboard {
   displayDialog: boolean = false;
   displayPresentDialog: boolean = false;
   displayAbsentDialog: boolean = false;
+
+  constructor(private db: DatabaseService, private messageService: MessageService) {
+    this.db.deptRequests$.subscribe(requests => {
+      this.departmentScheduleRequests = Object.values(requests).filter(req => req.status === 'PENDING_HR');
+    });
+  }
+
+  approveDepartmentSchedule(req: DepartmentRequest) {
+    this.db.updateDepartmentRequest(req.department, 'APPROVED');
+    this.messageService.add({ severity: 'success', summary: 'Thành công', detail: `Đã duyệt lịch cho ${req.department}` });
+  }
 
   scrollToPending() {
     const el = document.getElementById('pending-requests-section');

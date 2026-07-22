@@ -1,3 +1,4 @@
+<p-toast></p-toast>
 <div class="grid">
     <div class="col-12 flex justify-content-end mb-1 mt-2">
         <button pButton pRipple label="Tạo Lịch Làm Việc" icon="pi pi-calendar-plus"
@@ -68,9 +69,36 @@
         </div>
     </div>
 
+    <div class="col-12" id="department-requests-section" *ngIf="departmentScheduleRequests.length > 0">
+        <div class="card mb-4 border-2 border-primary border-round-xl">
+            <h5 class="text-primary"><i class="pi pi-calendar-clock mr-2"></i>Duyệt Lịch Làm Việc Phòng Ban</h5>
+            <p-table [value]="departmentScheduleRequests" [rows]="5" responsiveLayout="scroll">
+                <ng-template pTemplate="header">
+                    <tr>
+                        <th>Phòng ban</th>
+                        <th class="text-center">Trạng thái</th>
+                        <th class="text-center">Thao tác</th>
+                    </tr>
+                </ng-template>
+                <ng-template pTemplate="body" let-req>
+                    <tr>
+                        <td class="font-bold text-lg">{{req.department}}</td>
+                        <td class="text-center">
+                            <p-tag value="Trưởng phòng đã nộp" severity="warning" styleClass="text-sm px-3 py-2"></p-tag>
+                        </td>
+                        <td class="text-center">
+                            <button pButton pRipple label="Duyệt lịch" icon="pi pi-check"
+                                class="p-button-success border-round" (click)="approveDepartmentSchedule(req)"></button>
+                        </td>
+                    </tr>
+                </ng-template>
+            </p-table>
+        </div>
+    </div>
+
     <div class="col-12" id="pending-requests-section">
         <div class="card">
-            <h5>Lịch đặc biệt cần duyệt (Pending Approvals)</h5>
+            <h5>Đơn xin nghỉ phép / đi trễ (Pending Approvals)</h5>
             <p-table #dt [value]="pendingRequests" [rows]="5" [paginator]="true" responsiveLayout="scroll"
                 [globalFilterFields]="['employee', 'department', 'type']">
                 <ng-template pTemplate="caption">

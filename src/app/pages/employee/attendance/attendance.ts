@@ -4,6 +4,8 @@ import { ButtonModule } from 'primeng/button';
 import { TooltipModule } from 'primeng/tooltip';
 import { BadgeModule } from 'primeng/badge';
 import { Router } from '@angular/router';
+import { DatabaseService, ScheduleDay } from '../../../core/services/database.service';
+import { AuthService } from '../../../core/services/auth';
 
 @Component({
   selector: 'app-employee-attendance',
@@ -22,7 +24,7 @@ export class Attendance implements OnInit {
   weekDays = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
   employeeSchedule: any[] = [];
 
-  constructor(private router: Router) {}
+  constructor(private router: Router, private db: DatabaseService, private authService: AuthService) {}
 
   ngOnInit() {
     this.generateMockSchedule();
@@ -60,42 +62,62 @@ export class Attendance implements OnInit {
   }
 
   generateMockSchedule() {
-    const daysInMonth = 31;
-    let startDayOfWeek = 2; // Wed
+    this.employeeSchedule = [];
+    let baseSchedule: ScheduleDay[] | null = null;
     
-    for (let i = 1; i < startDayOfWeek; i++) {
-        this.employeeSchedule.push({ date: null, type: null, isWeekend: false });
+    const user = this.authService.getCurrentUser();
+    const userEmail = user ? user.email : '';
+    const me = this.db.getEmployeesSync().find(e => e.email === userEmail);
+    
+    if (me) {
+        const req = this.db.getDepartmentRequestSync(me.department);
+        if (req && req.status === 'APPROVED') {
+            baseSchedule = this.db.getDepartmentScheduleSync(me.department);
+        }
     }
     
-    for (let i = 1; i <= daysInMonth; i++) {
-        let currentDayOfWeek = (startDayOfWeek + i - 2) % 7;
-        let isWeekend = currentDayOfWeek === 5 || currentDayOfWeek === 6;
-        let type = 'HC';
-        if (isWeekend) type = 'OFF';
-        
-        let isToday = i === this.today.getDate();
-        let isPast = i < this.today.getDate();
+    if (!baseSchedule || baseSchedule.length === 0) {
+        baseSchedule = this.db.getCompanyScheduleSync();
+    }
+    
+    // Fallback if no schedule in DB
+    if (!baseSchedule || baseSchedule.length === 0) {
+        baseSchedule = [];
+        const daysInMonth = 31;
+        let startDayOfWeek = 2; // Wed
+        for (let i = 1; i < startDayOfWeek; i++) {
+            baseSchedule.push({ date: null, type: '' });
+        }
+        for (let i = 1; i <= daysInMonth; i++) {
+            let currentDayOfWeek = (startDayOfWeek + i - 2) % 7;
+            let isWeekend = currentDayOfWeek === 5 || currentDayOfWeek === 6;
+            baseSchedule.push({ date: i, type: isWeekend ? 'OFF' : 'HC' });
+        }
+    }
+
+    baseSchedule.forEach(cell => {
+        if (!cell.date) {
+            this.employeeSchedule.push({ ...cell, isWeekend: false });
+            return;
+        }
+
+        let isToday = cell.date === this.today.getDate();
+        let isPast = cell.date < this.today.getDate();
         
         let checkIn = null;
         let checkOut = null;
         let totalHours = null;
-        if (isPast && !isWeekend) {
-            // Generate random check-in around 8:00 - 8:30
+        if (isPast && cell.type === 'HC') {
             const inMin = Math.floor(Math.random() * 30).toString().padStart(2, '0');
             checkIn = `08:${inMin}`;
-            
-            // Generate random check-out around 17:30 - 18:30
             const outHour = Math.floor(Math.random() * 2) + 17;
             const outMin = Math.floor(Math.random() * 60).toString().padStart(2, '0');
             checkOut = `${outHour}:${outMin}`;
-            
             totalHours = this.calculateTotalHours(checkIn, checkOut);
         }
 
         this.employeeSchedule.push({
-            date: i,
-            type: type,
-            isWeekend: isWeekend,
+            ...cell,
             isToday: isToday,
             isPast: isPast,
             isPresent: false,
@@ -105,7 +127,7 @@ export class Attendance implements OnInit {
             checkOut: checkOut,
             totalHours: totalHours
         });
-    }
+    });
   }
 
   calculateTotalHours(checkIn: string, checkOut: string): string {

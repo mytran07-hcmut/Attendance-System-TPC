@@ -28,7 +28,7 @@ export class AppMenu implements OnInit {
         const role = this.authService.getRole();
 
         // Luôn có menu của Nhân viên
-        const employeeMenu = {
+        const employeeMenu: any = {
             label: 'Phân hệ Nhân viên',
             items: [
                 { label: 'Chấm công', icon: 'pi pi-fw pi-calendar-clock', routerLink: ['/employee/attendance'] },
@@ -36,6 +36,10 @@ export class AppMenu implements OnInit {
                 { label: 'Đăng ký phép', icon: 'pi pi-fw pi-file-edit', routerLink: ['/employee/leave'] }
             ]
         };
+
+        if (role === 'head' || role === 'admin') {
+            employeeMenu.items.push({ label: 'Quản lý lịch', icon: 'pi pi-fw pi-users', routerLink: ['/employee/manage-schedule'] });
+        }
 
         this.model = [employeeMenu];
 

@@ -38,7 +38,8 @@ export const routes: Routes = [
                     { path: '', redirectTo: 'attendance', pathMatch: 'full' },
                     { path: 'attendance', loadComponent: () => import('./pages/employee/attendance/attendance').then((m) => m.Attendance) },
                     { path: 'dashboard', loadComponent: () => import('./pages/employee/dashboard/dashboard').then((m) => m.Dashboard) },
-                    { path: 'leave', loadComponent: () => import('./pages/employee/leave/leave').then((m) => m.Leave) }
+                    { path: 'leave', loadComponent: () => import('./pages/employee/leave/leave').then((m) => m.Leave) },
+                    { path: 'manage-schedule', loadComponent: () => import('./pages/employee/manage-schedule/manage-schedule').then((m) => m.ManageSchedule) }
                 ]
             },
             {

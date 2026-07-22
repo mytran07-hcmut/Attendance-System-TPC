@@ -204,7 +204,7 @@ export const EMPLOYEES_MOCK = [
         "code": "NV026",
         "fullName": "Trần Hải My",
         "department": "Phòng Tuyển dụng Khối Sản xuất & Bán lẻ",
-        "title": "HR (Associate)",
+        "title": "Nhân viên (IT)",
         "email": "my.tran@tpc.com"
     },
     {
@@ -316,7 +316,7 @@ export const EMPLOYEES_MOCK = [
         "code": "NV040",
         "fullName": "Bùi Thị Tâm",
         "department": "Phòng Tuyển dụng Mass (Tuyển số lượng lớn)",
-        "title": "HR (Recruiter)",
+        "title": "Nhân viên (Sales)",
         "email": "tam.bui@tpc.com"
     },
     {

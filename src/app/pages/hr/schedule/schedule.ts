@@ -80,7 +80,7 @@ export class Schedule implements OnInit {
   ];
   selectedOption: number = 1;
 
-  departments = [{ name: 'IT' }, { name: 'Kế toán' }, { name: 'Nhân sự' }];
+  departments = [{ name: 'Phòng Tuyển dụng IT' }, { name: 'Phòng Tuyển dụng Mass (Tuyển số lượng lớn)' }, { name: 'Phòng Tuyển dụng Khối Sản xuất & Bán lẻ' }];
   selectedDepartment: any;
 
   employees: Employee[] = [];
@@ -244,12 +244,18 @@ export class Schedule implements OnInit {
   }
 
   publish() {
-    this.messageService.add({ severity: 'success', summary: 'Thành công', detail: 'Đã tạo và đăng lịch làm việc!' });
-    if (this.selectedOption === 2 || this.selectedOption === 3) {
-      setTimeout(() => {
-        this.messageService.add({ severity: 'info', summary: 'Thông báo', detail: 'Đã gửi thông báo yêu cầu điền lịch tới Trưởng phòng/Nhân viên' });
-      }, 1000);
+    if (this.selectedOption === 1) {
+      this.db.saveCompanySchedule(this.monthDays);
+      this.messageService.add({ severity: 'success', summary: 'Thành công', detail: 'Đã tạo và đăng lịch làm việc toàn công ty!' });
+    } else if (this.selectedOption === 2) {
+      if (this.selectedDepartment && this.selectedDepartment.name) {
+        this.db.updateDepartmentRequest(this.selectedDepartment.name, 'PENDING_HEAD');
+        this.messageService.add({ severity: 'info', summary: 'Thông báo', detail: `Đã gửi yêu cầu điền lịch tới Trưởng phòng ${this.selectedDepartment.name}` });
+      }
+    } else {
+      this.messageService.add({ severity: 'success', summary: 'Thành công', detail: 'Đã tạo và đăng lịch làm việc!' });
     }
+
     setTimeout(() => {
       this.activeIndex = 0;
       this.viewState = 'calendar';
