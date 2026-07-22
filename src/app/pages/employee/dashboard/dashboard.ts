@@ -25,6 +25,11 @@ export class Dashboard implements OnInit {
     { id: 3, type: 'Nghỉ việc riêng', from: '15/07/2026', to: '15/07/2026', reason: 'Giải quyết việc cá nhân', status: 'Chờ duyệt' }
   ];
 
+  missingLeaves = [
+    { id: 1, date: '18/07/2026', status: 'Cần bổ sung' },
+    { id: 2, date: '19/07/2026', status: 'Cần bổ sung' }
+  ];
+
   ngOnInit() {
   }
 

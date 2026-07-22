@@ -42,6 +42,28 @@
         </div>
     </div>
 
+    <!-- Missing Leave Requests Alert -->
+    <div class="col-12 mt-2" *ngIf="missingLeaves && missingLeaves.length > 0">
+        <div class="card bg-orange-50 border-orange-200 border-1 mb-0 shadow-1 border-round p-3">
+            <div class="flex align-items-center mb-3">
+                <i class="pi pi-exclamation-triangle text-orange-500 text-xl mr-2"></i>
+                <span class="text-orange-700 font-bold text-lg">Cần bổ sung đơn xin nghỉ phép</span>
+            </div>
+            <p class="text-orange-700 mt-0 mb-3">Bạn có các ngày nghỉ sau chưa được ghi nhận phép. Vui lòng bổ sung đơn để không ảnh hưởng đến ngày công.</p>
+            
+            <div class="flex flex-column gap-2">
+                <div *ngFor="let missing of missingLeaves" class="flex justify-content-between align-items-center bg-white p-2 border-round shadow-1">
+                    <div class="flex align-items-center gap-2">
+                        <i class="pi pi-calendar-times text-orange-400"></i>
+                        <span class="font-medium text-700">Ngày: {{missing.date}}</span>
+                    </div>
+                    <button pButton pRipple label="Bổ sung đơn" icon="pi pi-file-edit" class="p-button-warning p-button-sm" 
+                        [routerLink]="['/employee/leave']" [state]="{ targetDate: missing.date }"></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Leave History Table -->
     <div class="col-12 mt-4">
         <div class="card shadow-2 border-round">
