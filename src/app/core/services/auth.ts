@@ -1,19 +1,16 @@
 import { Injectable, signal, WritableSignal } from '@angular/core';
 import { Router } from '@angular/router';
 
+import { EMPLOYEES_MOCK } from '../mocks/employees.mock';
+
 export interface User {
   email: string;
   name: string;
   role: string;
   roleLabel: string;
+  employeeCode: string;
 }
 
-const MOCK_USERS: User[] = [
-  { email: 'admin@tpc.com', name: 'Nguyễn Văn Admin', role: 'admin', roleLabel: 'Admin' },
-  { email: 'hr@tpc.com', name: 'Trần Thị HR', role: 'hr', roleLabel: 'HR' },
-  { email: 'head@tpc.com', name: 'Lê Văn Trưởng Phòng', role: 'head', roleLabel: 'Trưởng phòng' },
-  { email: 'employee@tpc.com', name: 'Phạm Nhân Viên', role: 'employee', roleLabel: '' }
-];
 
 @Injectable({
   providedIn: 'root'
@@ -27,8 +24,27 @@ export class AuthService {
 
   login(email: string, password: string): boolean {
     if (password === '123') {
-      const user = MOCK_USERS.find(u => u.email === email);
-      if (user) {
+      const emp = EMPLOYEES_MOCK.find(e => e.email === email);
+      if (emp) {
+        let role = 'employee';
+        const titleLower = emp.title.toLowerCase();
+        
+        if (titleLower.includes('giám đốc')) {
+          role = 'admin';
+        } else if (titleLower.includes('trưởng phòng')) {
+          role = 'head';
+        } else if (titleLower.includes('hr')) {
+          role = 'hr';
+        }
+
+        const user: User = {
+          email: emp.email,
+          name: emp.fullName,
+          role: role,
+          roleLabel: emp.title,
+          employeeCode: emp.code
+        };
+
         if (typeof window !== 'undefined') {
           localStorage.setItem('currentUser', JSON.stringify(user));
         }

@@ -148,12 +148,6 @@ export class Attendance implements OnInit {
     }, 3200);
   }
 
-  declineAttendance() {
-    this.hasConfirmed = true;
-    this.attendanceStatus = 'absent';
-    // Navigate to leave request
-    this.router.navigate(['/employee/leave']);
-  }
 
   resetAttendance() {
     this.hasConfirmed = false;

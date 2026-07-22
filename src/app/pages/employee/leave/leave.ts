@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { SelectModule } from 'primeng/select';
@@ -18,7 +18,7 @@ import { Router } from '@angular/router';
   templateUrl: './leave.html',
   styleUrl: './leave.scss'
 })
-export class Leave {
+export class Leave implements OnInit {
   leaveTypes = [
     { label: 'Nghỉ phép năm (AL)', value: 'AL' },
     { label: 'Nghỉ ốm', value: 'SICK' },
@@ -31,6 +31,18 @@ export class Leave {
   reason: string = '';
 
   constructor(private messageService: MessageService, private router: Router) {}
+
+  ngOnInit() {
+    if (history.state && history.state.targetDate) {
+      const targetDateStr = history.state.targetDate;
+      const [day, month, year] = targetDateStr.split('/');
+      if (day && month && year) {
+        const parsedDate = new Date(Number(year), Number(month) - 1, Number(day));
+        this.dateRange = [parsedDate, parsedDate];
+      }
+    }
+  }
+
 
   submitLeaveRequest() {
     if (!this.selectedType || !this.dateRange || !this.reason) {

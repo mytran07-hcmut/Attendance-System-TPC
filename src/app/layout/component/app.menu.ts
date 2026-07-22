@@ -39,25 +39,30 @@ export class AppMenu implements OnInit {
 
         this.model = [employeeMenu];
 
+        const hrMenu = {
+            label: 'Phân hệ HR',
+            items: [
+                { label: 'Dashboard', icon: 'pi pi-fw pi-home', routerLink: ['/hr/dashboard'] },
+                { label: 'Quản lý ký hiệu', icon: 'pi pi-fw pi-tags', routerLink: ['/hr/symbols'] },
+                { label: 'Lịch', icon: 'pi pi-fw pi-calendar-plus', routerLink: ['/hr/schedule'] },
+                { label: 'Chốt công & Báo cáo', icon: 'pi pi-fw pi-chart-bar', routerLink: ['/hr/reports'] }
+            ]
+        };
+
+        const adminMenu = {
+            label: 'Phân hệ Admin',
+            items: [
+                { label: 'Dashboard', icon: 'pi pi-fw pi-home', routerLink: ['/admin/dashboard'] },
+                { label: 'Quản lý HR', icon: 'pi pi-fw pi-users', routerLink: ['/admin/manage-hr'] },
+                { label: 'Quản lý Nhân viên', icon: 'pi pi-fw pi-building', routerLink: ['/admin/departments'] }
+            ]
+        };
+
         if (role === 'hr') {
-            this.model.unshift({
-                label: 'Phân hệ HR',
-                items: [
-                    { label: 'Dashboard', icon: 'pi pi-fw pi-home', routerLink: ['/hr/dashboard'] },
-                    { label: 'Quản lý ký hiệu', icon: 'pi pi-fw pi-tags', routerLink: ['/hr/symbols'] },
-                    { label: 'Lịch', icon: 'pi pi-fw pi-calendar-plus', routerLink: ['/hr/schedule'] },
-                    { label: 'Chốt công & Báo cáo', icon: 'pi pi-fw pi-chart-bar', routerLink: ['/hr/reports'] }
-                ]
-            });
+            this.model.unshift(hrMenu);
         } else if (role === 'admin') {
-            this.model.unshift({
-                label: 'Phân hệ Admin',
-                items: [
-                    { label: 'Dashboard', icon: 'pi pi-fw pi-home', routerLink: ['/admin/dashboard'] },
-                    { label: 'Quản lý HR', icon: 'pi pi-fw pi-users', routerLink: ['/admin/manage-hr'] },
-                    { label: 'Quản lý Nhân viên', icon: 'pi pi-fw pi-building', routerLink: ['/admin/departments'] }
-                ]
-            });
+            this.model.unshift(hrMenu);
+            this.model.unshift(adminMenu);
         }
     }
 }
