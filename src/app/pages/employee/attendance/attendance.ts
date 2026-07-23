@@ -83,13 +83,17 @@ export class Attendance implements OnInit {
     // Fallback if no schedule in DB
     if (!baseSchedule || baseSchedule.length === 0) {
         baseSchedule = [];
-        const daysInMonth = 31;
-        let startDayOfWeek = 2; // Wed
-        for (let i = 1; i < startDayOfWeek; i++) {
+        const year = this.today.getFullYear();
+        const month = this.today.getMonth();
+        const firstDay = new Date(year, month, 1).getDay();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        let startOffset = firstDay === 0 ? 6 : firstDay - 1;
+        
+        for (let i = 0; i < startOffset; i++) {
             baseSchedule.push({ date: null, type: '' });
         }
         for (let i = 1; i <= daysInMonth; i++) {
-            let currentDayOfWeek = (startDayOfWeek + i - 2) % 7;
+            let currentDayOfWeek = (startOffset + i - 1) % 7;
             let isWeekend = currentDayOfWeek === 5 || currentDayOfWeek === 6;
             baseSchedule.push({ date: i, type: isWeekend ? 'OFF' : 'HC' });
         }
