@@ -76,15 +76,19 @@ export class Reports implements OnInit {
     
     // Generate a mock month schedule for this employee
     this.employeeSchedule = [];
-    const daysInMonth = 31;
-    let startDayOfWeek = 2; // Wed
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = today.getMonth();
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    let startOffset = firstDay === 0 ? 6 : firstDay - 1;
     
-    for (let i = 1; i < startDayOfWeek; i++) {
+    for (let i = 0; i < startOffset; i++) {
         this.employeeSchedule.push({ date: null, type: null, isWeekend: false });
     }
     
     for (let i = 1; i <= daysInMonth; i++) {
-        let currentDayOfWeek = (startDayOfWeek + i - 2) % 7;
+        let currentDayOfWeek = (startOffset + i - 1) % 7;
         let isWeekend = currentDayOfWeek === 5 || currentDayOfWeek === 6;
         
         let type = 'HC';

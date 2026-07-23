@@ -51,12 +51,17 @@ export class ManageSchedule implements OnInit {
        this.schedule = JSON.parse(JSON.stringify(companySched));
     } else {
        this.schedule = [];
-       // Simple fallback for days 1-31
-       let startOffset = 2; 
+       const today = new Date();
+       const year = today.getFullYear();
+       const month = today.getMonth();
+       const firstDay = new Date(year, month, 1).getDay();
+       const daysInMonth = new Date(year, month + 1, 0).getDate();
+       let startOffset = firstDay === 0 ? 6 : firstDay - 1;
+       
        for (let i = 0; i < startOffset; i++) {
          this.schedule.push({ date: null, type: '' });
        }
-       for (let i = 1; i <= 31; i++) {
+       for (let i = 1; i <= daysInMonth; i++) {
          const dow = (startOffset + i - 1) % 7;
          this.schedule.push({ date: i, type: (dow === 5 || dow === 6) ? 'OFF' : 'HC' });
        }
