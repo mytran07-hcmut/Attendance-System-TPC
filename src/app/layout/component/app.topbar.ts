@@ -3,14 +3,13 @@ import { MenuItem } from 'primeng/api';
 import { RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { StyleClassModule } from 'primeng/styleclass';
-import { AppConfigurator } from './app.configurator';
 import { LayoutService } from '@/app/layout/service/layout.service';
 import { AuthService } from '../../core/services/auth';
 
 @Component({
     selector: 'app-topbar',
     standalone: true,
-    imports: [RouterModule, CommonModule, StyleClassModule, AppConfigurator],
+    imports: [RouterModule, CommonModule, StyleClassModule],
     template: ` <div class="layout-topbar">
         <div class="layout-topbar-logo-container">
             <button class="layout-menu-button layout-topbar-action border-none" (click)="layoutService.onMenuToggle()">
@@ -27,22 +26,6 @@ import { AuthService } from '../../core/services/auth';
                 <i [ngClass]="{ 'pi ': true, 'pi-moon': layoutService.isDarkTheme(), 'pi-sun': !layoutService.isDarkTheme() }"></i>
             </button>
             
-            <div class="relative">
-                <button
-                    class="layout-topbar-action border-none text-white border-circle flex align-items-center justify-content-center bg-primary hover:bg-primary-reverse transition-colors transition-duration-150"
-                    style="width: 2.5rem; height: 2.5rem;"
-                    pStyleClass="@next"
-                    enterFromClass="hidden"
-                    enterActiveClass="animate-scalein"
-                    leaveToClass="hidden"
-                    leaveActiveClass="animate-fadeout"
-                    [hideOnOutsideClick]="true"
-                >
-                    <i class="pi pi-palette"></i>
-                </button>
-                <app-configurator />
-            </div>
-
             <button class="layout-topbar-action border-none">
                 <i class="pi pi-bell"></i>
             </button>

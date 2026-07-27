@@ -11,6 +11,8 @@ export interface Employee {
   email: string;
   phone?: string;
   status?: string;
+  avatar?: string;
+  permissions?: string[];
 }
 
 export interface ScheduleDay {
@@ -30,7 +32,7 @@ export interface DepartmentRequest {
   providedIn: 'root'
 })
 export class DatabaseService {
-  private readonly EMPLOYEES_KEY = 'mock_db_employees';
+  private readonly EMPLOYEES_KEY = 'mock_db_employees_v2';
   private readonly COMPANY_SCHEDULE_KEY = 'mock_db_company_schedule';
   private readonly DEPT_SCHEDULES_KEY = 'mock_db_dept_schedules';
   private readonly DEPT_REQUESTS_KEY = 'mock_db_dept_requests';
@@ -56,11 +58,10 @@ export class DatabaseService {
     if (storedEmployees) {
       this.employeesSubject.next(JSON.parse(storedEmployees));
     } else {
-      // Add default values for phone and status if not present
-      const initialData: Employee[] = EMPLOYEES_MOCK.map(emp => ({
+      const initialData: Employee[] = EMPLOYEES_MOCK.map((emp: any) => ({
         ...emp,
-        phone: '0901234567', // Mock phone
-        status: 'Làm việc'
+        phone: emp.phone || '0901234567',
+        status: emp.status || 'Làm việc'
       }));
       this.saveEmployees(initialData);
     }

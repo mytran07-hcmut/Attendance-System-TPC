@@ -1,14 +1,18 @@
+<p-toast></p-toast>
+<p-confirmDialog></p-confirmDialog>
+
 <div class="grid">
     <div class="col-12">
-        <div class="flex align-items-center mb-4">
-            <button pButton pRipple icon="pi pi-arrow-left" class="p-button-text p-button-secondary mr-3" routerLink="/admin/departments"></button>
-            <h4 class="m-0">Danh sách nhân viên - <span class="text-primary">{{departmentName}}</span></h4>
+        <div class="flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+            <h4 class="m-0">Danh sách nhân viên</h4>
+            <button pButton pRipple label="Thêm nhân viên" icon="pi pi-plus" class="p-button-primary" (click)="openAddDialog()"></button>
         </div>
 
         <div class="card fadein animation-duration-300">
-            <p-table #dt [value]="employees" [rows]="10" [paginator]="true" responsiveLayout="scroll" [globalFilterFields]="['fullName','code','email']">
+            <p-table #dt [value]="employees" [rows]="10" [paginator]="true" responsiveLayout="scroll" [globalFilterFields]="['fullName','code','email','department']">
                 <ng-template pTemplate="caption">
-                    <div class="flex justify-content-end align-items-center">
+                    <div class="flex flex-wrap justify-content-between align-items-center gap-3">
+                        <p-select [options]="departments" [(ngModel)]="selectedDepartment" optionLabel="label" optionValue="value" (onChange)="onDepartmentChange()" placeholder="Lọc theo phòng ban" [style]="{'minWidth':'250px'}"></p-select>
                         <p-iconfield iconPosition="left">
                             <p-inputicon styleClass="pi pi-search"></p-inputicon>
                             <input pInputText #searchInput type="text" (input)="dt.filterGlobal(searchInput.value, 'contains')" placeholder="Tìm kiếm nhân viên..." />
@@ -19,6 +23,7 @@
                     <tr>
                         <th>Mã NV</th>
                         <th>Họ tên</th>
+                        <th>Phòng ban</th>
                         <th>Chức vụ</th>
                         <th>Trạng thái</th>
                     </tr>
@@ -27,6 +32,7 @@
                     <tr class="hover:surface-100 transition-duration-150 cursor-pointer" (click)="viewDetails(emp)">
                         <td class="font-semibold">{{ emp.code }}</td>
                         <td>{{ emp.fullName }}</td>
+                        <td>{{ emp.department }}</td>
                         <td>{{ emp.title }}</td>
                         <td>
                             <p-tag [severity]="emp.status === 'Làm việc' ? 'success' : 'warning'" [value]="emp.status"></p-tag>
@@ -41,7 +47,7 @@
 <p-dialog header="Chi tiết nhân viên" [(visible)]="displayDetailDialog" [modal]="true" [dismissableMask]="true" [style]="{width: '500px'}" [draggable]="false" [resizable]="false">
     <div *ngIf="selectedEmployee" class="flex flex-column gap-4 py-3">
         <div class="flex flex-column align-items-center gap-3 border-bottom-1 surface-border pb-4">
-            <img src="assets/demo/images/avatar/amyelsner.png" alt="Avatar" class="border-circle shadow-2" style="width: 100px; height: 100px; object-fit: cover" onerror="this.src='https://ui-avatars.com/api/?name='+this.alt+'&background=random'" [alt]="selectedEmployee.fullName" />
+            <img [src]="selectedEmployee.avatar || 'https://ui-avatars.com/api/?name=' + selectedEmployee.fullName + '&background=random'" alt="Avatar" class="border-circle shadow-2" style="width: 100px; height: 100px; object-fit: cover" onerror="this.src='https://ui-avatars.com/api/?name='+this.alt+'&background=random'" [alt]="selectedEmployee.fullName" />
             <div class="text-center">
                 <div class="text-900 font-bold text-2xl mb-1">{{ selectedEmployee.fullName }}</div>
                 <div class="text-500 font-medium">{{ selectedEmployee.title }}</div>
@@ -75,10 +81,77 @@
                 <i class="pi pi-building text-500 mr-3 text-xl"></i>
                 <div class="flex flex-column">
                     <span class="text-500 text-sm">Phòng ban</span>
-                    <span class="text-900 font-medium">{{ departmentName }}</span>
+                    <span class="text-900 font-medium">{{ selectedEmployee.department }}</span>
                 </div>
             </div>
         </div>
-    </div>
 
+        <!-- Phân quyền HR -->
+        <div *ngIf="isHR(selectedEmployee)" class="mt-3 border-top-1 surface-border pt-4">
+            <div class="text-900 font-bold mb-3"><i class="pi pi-shield mr-2 text-blue-500"></i>Phân quyền HR</div>
+            <div class="flex flex-column gap-3">
+                <div class="flex align-items-center justify-content-between">
+                    <label class="font-medium text-700">Tạo lịch làm việc</label>
+                    <p-toggleswitch [(ngModel)]="hrPermissions.manageSchedule" (onChange)="updateHrPermissions()"></p-toggleswitch>
+                </div>
+                <div class="flex align-items-center justify-content-between">
+                    <label class="font-medium text-700">Duyệt lịch & Yêu cầu</label>
+                    <p-toggleswitch [(ngModel)]="hrPermissions.approveSchedule" (onChange)="updateHrPermissions()"></p-toggleswitch>
+                </div>
+                <div class="flex align-items-center justify-content-between">
+                    <label class="font-medium text-700">Quản lý nghỉ phép</label>
+                    <p-toggleswitch [(ngModel)]="hrPermissions.manageLeave" (onChange)="updateHrPermissions()"></p-toggleswitch>
+                </div>
+                <div class="flex align-items-center justify-content-between">
+                    <label class="font-medium text-700">Xem báo cáo</label>
+                    <p-toggleswitch [(ngModel)]="hrPermissions.viewReports" (onChange)="updateHrPermissions()"></p-toggleswitch>
+                </div>
+            </div>
+        </div>
+        
+        <div class="flex justify-content-center mt-4" *ngIf="canDelete(selectedEmployee)">
+            <button pButton pRipple label="Xoá nhân viên" icon="pi pi-trash" class="p-button-danger w-full" (click)="confirmDelete(selectedEmployee)"></button>
+        </div>
+    </div>
+</p-dialog>
+
+<p-dialog header="Thêm nhân viên mới" [(visible)]="displayAddDialog" [modal]="true" [style]="{width: '500px'}" [draggable]="false" [resizable]="false">
+    <div class="flex flex-column gap-4 py-3">
+        <div class="flex flex-column gap-2">
+            <label for="fullName" class="font-semibold">Họ và tên <span class="text-red-500">*</span></label>
+            <input id="fullName" type="text" pInputText [(ngModel)]="newEmployee.fullName" placeholder="VD: Nguyễn Văn A" />
+        </div>
+        
+        <div class="flex flex-column gap-2">
+            <label for="phone" class="font-semibold">Số điện thoại</label>
+            <input id="phone" type="text" pInputText [(ngModel)]="newEmployee.phone" placeholder="VD: 0901234567" />
+        </div>
+
+        <div class="flex flex-column gap-2">
+            <label for="department" class="font-semibold">Phòng ban <span class="text-red-500">*</span></label>
+            <p-select id="department" [options]="departments.slice(1)" [(ngModel)]="newEmployee.department" optionLabel="label" optionValue="value" placeholder="Chọn phòng ban" appendTo="body" [style]="{'width':'100%'}"></p-select>
+        </div>
+
+        <div class="flex flex-column gap-2">
+            <label class="font-semibold">Ảnh đại diện (Tuỳ chọn)</label>
+            <div class="border-2 border-dashed surface-border border-round flex flex-column align-items-center justify-content-center p-4 cursor-pointer hover:surface-100 transition-colors transition-duration-150" (click)="fileInput.click()" style="min-height: 150px">
+                <input #fileInput type="file" accept="image/*" class="hidden" (change)="onFileChange($event)" style="display: none;" />
+                
+                <ng-container *ngIf="!newEmployee.avatar">
+                    <i class="pi pi-image text-4xl text-500 mb-3"></i>
+                    <span class="text-500 font-medium">Nhấn để tải ảnh lên</span>
+                </ng-container>
+
+                <ng-container *ngIf="newEmployee.avatar">
+                    <img [src]="newEmployee.avatar" alt="Avatar Preview" class="border-circle shadow-2 mb-2" style="width: 100px; height: 100px; object-fit: cover" />
+                    <span class="text-500 font-medium text-sm">Nhấn để đổi ảnh khác</span>
+                </ng-container>
+            </div>
+            <small class="text-500">Nếu để trống, ảnh mặc định sẽ được tạo từ tên. Chỉ hỗ trợ định dạng ảnh, tối đa 1MB.</small>
+        </div>
+    </div>
+    <ng-template pTemplate="footer">
+        <button pButton pRipple label="Huỷ" icon="pi pi-times" class="p-button-text" (click)="displayAddDialog = false"></button>
+        <button pButton pRipple label="Lưu" icon="pi pi-check" class="p-button-primary" (click)="saveEmployee()"></button>
+    </ng-template>
 </p-dialog>
