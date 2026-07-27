@@ -14,9 +14,7 @@ export const routes: Routes = [
                 children: [
                     { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
                     { path: 'dashboard', loadComponent: () => import('./pages/admin/dashboard/dashboard').then((m) => m.Dashboard) },
-                    { path: 'manage-hr', loadComponent: () => import('./pages/admin/manage-hr/manage-hr').then((m) => m.ManageHr) },
-                    { path: 'departments', loadComponent: () => import('./pages/admin/departments/departments').then((m) => m.Departments) },
-                    { path: 'departments/:id/employees', loadComponent: () => import('./pages/admin/employees/employees').then((m) => m.Employees) },
+                    { path: 'employees', loadComponent: () => import('./pages/admin/employees/employees').then((m) => m.Employees) },
                 ]
             },
             {
