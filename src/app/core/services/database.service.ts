@@ -27,6 +27,19 @@ export interface DepartmentRequest {
   status: 'PENDING_HEAD' | 'PENDING_HR' | 'APPROVED';
 }
 
+export interface LeaveRequest {
+  id: number;
+  employeeEmail: string;
+  employeeName: string;
+  department: string;
+  typeCode: string;
+  typeLabel: string;
+  reason: string;
+  dateRange: string[];
+  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  requestDate: string;
+}
+
 
 @Injectable({
   providedIn: 'root'
@@ -36,6 +49,7 @@ export class DatabaseService {
   private readonly COMPANY_SCHEDULE_KEY = 'mock_db_company_schedule';
   private readonly DEPT_SCHEDULES_KEY = 'mock_db_dept_schedules';
   private readonly DEPT_REQUESTS_KEY = 'mock_db_dept_requests';
+  private readonly LEAVE_REQUESTS_KEY = 'mock_db_leave_requests';
   
   private employeesSubject = new BehaviorSubject<Employee[]>([]);
   public employees$ = this.employeesSubject.asObservable();
@@ -48,6 +62,9 @@ export class DatabaseService {
 
   private deptRequestsSubject = new BehaviorSubject<{ [dept: string]: DepartmentRequest }>({});
   public deptRequests$ = this.deptRequestsSubject.asObservable();
+
+  private leaveRequestsSubject = new BehaviorSubject<LeaveRequest[]>([]);
+  public leaveRequests$ = this.leaveRequestsSubject.asObservable();
 
   constructor() {
     this.initDatabase();
@@ -80,6 +97,30 @@ export class DatabaseService {
     if (storedDeptRequests) {
       this.deptRequestsSubject.next(JSON.parse(storedDeptRequests));
     }
+
+    const storedLeaveRequests = localStorage.getItem(this.LEAVE_REQUESTS_KEY);
+    if (storedLeaveRequests) {
+      this.leaveRequestsSubject.next(JSON.parse(storedLeaveRequests));
+    }
+
+    // Sync across tabs
+    window.addEventListener('storage', (event) => {
+      if (event.key === this.EMPLOYEES_KEY && event.newValue) {
+        this.employeesSubject.next(JSON.parse(event.newValue));
+      }
+      if (event.key === this.COMPANY_SCHEDULE_KEY && event.newValue) {
+        this.companyScheduleSubject.next(JSON.parse(event.newValue));
+      }
+      if (event.key === this.DEPT_SCHEDULES_KEY && event.newValue) {
+        this.deptSchedulesSubject.next(JSON.parse(event.newValue));
+      }
+      if (event.key === this.DEPT_REQUESTS_KEY && event.newValue) {
+        this.deptRequestsSubject.next(JSON.parse(event.newValue));
+      }
+      if (event.key === this.LEAVE_REQUESTS_KEY && event.newValue) {
+        this.leaveRequestsSubject.next(JSON.parse(event.newValue));
+      }
+    });
   }
 
   private saveEmployees(employees: Employee[]) {
@@ -123,6 +164,35 @@ export class DatabaseService {
   getAllDepartmentRequestsSync(): DepartmentRequest[] {
     const current = this.deptRequestsSubject.getValue();
     return Object.values(current);
+  }
+
+  // --- Leave Request Methods ---
+  
+  getLeaveRequestsSync(): LeaveRequest[] {
+    return this.leaveRequestsSubject.getValue();
+  }
+  
+  getLeaveRequestsByEmployeeSync(email: string): LeaveRequest[] {
+    return this.getLeaveRequestsSync().filter(r => r.employeeEmail === email);
+  }
+  
+  addLeaveRequest(request: Omit<LeaveRequest, 'id'>) {
+    const current = this.getLeaveRequestsSync();
+    const nextId = current.length > 0 ? Math.max(...current.map(r => r.id)) + 1 : 1;
+    const newRequest: LeaveRequest = { ...request, id: nextId };
+    const updated = [...current, newRequest];
+    localStorage.setItem(this.LEAVE_REQUESTS_KEY, JSON.stringify(updated));
+    this.leaveRequestsSubject.next(updated);
+  }
+  
+  updateLeaveRequestStatus(id: number, status: 'APPROVED' | 'REJECTED') {
+    const current = this.getLeaveRequestsSync();
+    const index = current.findIndex(r => r.id === id);
+    if (index !== -1) {
+      current[index] = { ...current[index], status };
+      localStorage.setItem(this.LEAVE_REQUESTS_KEY, JSON.stringify([...current]));
+      this.leaveRequestsSubject.next([...current]);
+    }
   }
 
   // --- Mock API Methods ---

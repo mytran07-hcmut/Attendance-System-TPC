@@ -65,9 +65,10 @@
             <div *ngFor="let cell of employeeSchedule"
                 class="flex flex-column p-2 border-right-1 border-bottom-1 border-300 relative"
                 style="width: 14.28%; height: 120px;" [ngClass]="{
-                    'bg-surface-50': cell.isWeekend && !cell.isPast && !cell.isPresent && !cell.isAbsent,
+                    'bg-surface-50': cell.isWeekend && !cell.isPast && !cell.isPresent && !cell.isAbsent && !cell.isRejectedLeave,
                     'bg-gray-100': cell.isPast || cell.isPresent,
-                    'bg-red-100': cell.isAbsent
+                    'bg-red-100': (cell.isAbsent && !cell.isApprovedLeave) || cell.isRejectedLeave,
+                    'bg-green-50': cell.isApprovedLeave
                 }" [pTooltip]="cell.leaveReason" tooltipPosition="top">
 
                 <div class="flex justify-content-between align-items-start mb-1">
@@ -95,6 +96,12 @@
                     <div *ngIf="cell.checkOut" class="flex align-items-center gap-2 text-xs text-700 font-medium">
                         <i class="pi pi-sign-out text-green-500"></i>
                         <span>{{ cell.checkOut }}</span>
+                    </div>
+                    <div *ngIf="cell.isApprovedLeave" class="flex flex-column align-items-center gap-1 justify-content-center text-green-500">
+                        <i class="pi pi-check-circle text-2xl font-bold"></i>
+                    </div>
+                    <div *ngIf="cell.isRejectedLeave" class="flex flex-column align-items-center gap-1 justify-content-center text-red-500">
+                        <i class="pi pi-times-circle text-2xl font-bold"></i>
                     </div>
                 </div>
 

@@ -71,7 +71,7 @@ export class ManageSchedule implements OnInit {
   toggleDay(day: ScheduleDay) {
     if (!day.date) return;
     if (this.pendingRequest?.status !== 'PENDING_HEAD') return;
-    day.type = day.type === 'HC' ? 'OFF' : 'HC';
+    day.type = day.type === 'HC' ? 'WFH' : 'HC';
   }
 
   submitSchedule() {

@@ -44,7 +44,8 @@ export class Schedule implements OnInit {
     { code: 'AL', name: 'Nghỉ phép năm', color: '#d9ead3' },
     { code: 'KP', name: 'Nghỉ không phép', color: '#c9daf8' },
     { code: 'OFF', name: 'Ngày nghỉ tuần', color: '#d9d2e9' },
-    { code: 'L', name: 'Ngày Lễ', color: '#fff2cc' }
+    { code: 'L', name: 'Ngày Lễ', color: '#fff2cc' },
+    { code: 'WFH', name: 'Làm việc tại nhà', color: '#ffe5b4' }
   ];
   displayEditDialog: boolean = false;
   editingCell: any = null;
@@ -64,8 +65,11 @@ export class Schedule implements OnInit {
       code: 'DEP',
       items: [
         { label: 'Phòng IT', code: 'IT' },
+        { label: 'Phòng Nhân sự', code: 'HR' },
         { label: 'Phòng Kế toán', code: 'ACC' },
-        { label: 'Phòng Nhân sự', code: 'HR' }
+        { label: 'Phòng Marketing', code: 'MKT' },
+        { label: 'Phòng Sales', code: 'SALES' },
+        { label: 'Ban Giám đốc', code: 'BOD' }
       ]
     },
     { label: 'Nhân viên', code: 'EMP' }
@@ -80,7 +84,14 @@ export class Schedule implements OnInit {
   ];
   selectedOption: number = 1;
 
-  departments = [{ name: 'Phòng Tuyển dụng IT' }, { name: 'Phòng Tuyển dụng Mass (Tuyển số lượng lớn)' }, { name: 'Phòng Tuyển dụng Khối Sản xuất & Bán lẻ' }];
+  departments = [
+    { name: 'Phòng IT' },
+    { name: 'Phòng Nhân sự' },
+    { name: 'Phòng Kế toán' },
+    { name: 'Phòng Marketing' },
+    { name: 'Phòng Sales' },
+    { name: 'Ban Giám đốc' }
+  ];
   selectedDepartment: any;
 
   employees: Employee[] = [];

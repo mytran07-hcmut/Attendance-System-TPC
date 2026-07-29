@@ -124,23 +124,23 @@
                 </ng-template>
                 <ng-template pTemplate="body" let-request>
                     <tr class="cursor-pointer hover:surface-100 transition-duration-150" (click)="showDialog(request)">
-                        <td>{{request.employee}}</td>
+                        <td>{{request.employeeName}}</td>
                         <td>{{request.department}}</td>
-                        <td>{{request.type}}</td>
-                        <td>{{request.date}}</td>
+                        <td>{{request.typeLabel}}</td>
+                        <td>{{formatDateRange(request.dateRange)}}</td>
                         <td class="text-center">
-                            <p-tag *ngIf="request.status === 'Chờ duyệt'" [value]="request.status"
+                            <p-tag *ngIf="request.status === 'PENDING'" value="Chờ duyệt"
                                 styleClass="bg-yellow-100 text-yellow-800 font-bold border-1 border-yellow-300"></p-tag>
-                            <p-tag *ngIf=" request.status==='Đã duyệt'" [value]=" request.status"
+                            <p-tag *ngIf=" request.status==='APPROVED'" value="Đã duyệt"
                                 severity="success"></p-tag>
-                            <p-tag *ngIf="request.status === 'Từ chối'" [value]="request.status"
+                            <p-tag *ngIf="request.status === 'REJECTED'" value="Từ chối"
                                 severity="danger"></p-tag>
                         </td>
                         <td class="text-center">
-                            <button *ngIf="request.status === 'Chờ duyệt'" pButton pRipple type="button"
+                            <button *ngIf="request.status === 'PENDING'" pButton pRipple type="button"
                                 icon="pi pi-check" class="p-button-rounded p-button-success p-button-text mr-2"
                                 (click)="approve(request); $event.stopPropagation()" pTooltip="Duyệt"></button>
-                            <button *ngIf="request.status === 'Chờ duyệt'" pButton pRipple type="button"
+                            <button *ngIf="request.status === 'PENDING'" pButton pRipple type="button"
                                 icon="pi pi-times" class="p-button-rounded p-button-danger p-button-text"
                                 (click)="reject(request); $event.stopPropagation()" pTooltip="Từ chối"></button>
                         </td>
@@ -156,7 +156,7 @@
     <div *ngIf="selectedRequest" class="flex flex-column gap-3 p-4">
         <div class="flex align-items-center justify-content-between border-bottom-1 surface-border pb-2">
             <span class="font-semibold text-700">Nhân viên:</span>
-            <span class="text-900 font-medium text-lg">{{selectedRequest.employee}}</span>
+            <span class="text-900 font-medium text-lg">{{selectedRequest.employeeName}}</span>
         </div>
         <div class="flex align-items-center justify-content-between border-bottom-1 surface-border pb-2">
             <span class="font-semibold text-700">Phòng ban:</span>
@@ -164,11 +164,11 @@
         </div>
         <div class="flex align-items-center justify-content-between border-bottom-1 surface-border pb-2">
             <span class="font-semibold text-700">Loại đơn:</span>
-            <span class="text-900">{{selectedRequest.type}}</span>
+            <span class="text-900">{{selectedRequest.typeLabel}}</span>
         </div>
         <div class="flex align-items-center justify-content-between border-bottom-1 surface-border pb-2">
             <span class="font-semibold text-700">Ngày:</span>
-            <span class="text-900 font-medium">{{selectedRequest.date}}</span>
+            <span class="text-900 font-medium">{{formatDateRange(selectedRequest.dateRange)}}</span>
         </div>
         <div class="flex flex-column gap-2 mt-2">
             <span class="font-semibold text-700">Lý do:</span>
@@ -178,7 +178,7 @@
         </div>
     </div>
     <ng-template pTemplate="footer">
-        <div *ngIf="selectedRequest?.status === 'Chờ duyệt'" class="flex justify-content-end gap-2 w-full mt-3">
+        <div *ngIf="selectedRequest?.status === 'PENDING'" class="flex justify-content-end gap-2 w-full mt-3">
             <button pButton pRipple label="Từ chối" icon="pi pi-times"
                 class="p-button-outlined p-button-danger border-round-xl" (click)="reject(selectedRequest)"></button>
             <button pButton pRipple label="Duyệt đơn" icon="pi pi-check" class="p-button-success border-round-xl"
