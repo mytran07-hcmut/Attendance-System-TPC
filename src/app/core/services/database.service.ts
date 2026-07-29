@@ -63,6 +63,9 @@ export class DatabaseService {
   private deptRequestsSubject = new BehaviorSubject<{ [dept: string]: DepartmentRequest }>({});
   public deptRequests$ = this.deptRequestsSubject.asObservable();
 
+  private publishedMonthsSubject = new BehaviorSubject<string[]>([]);
+  public publishedMonths$ = this.publishedMonthsSubject.asObservable();
+
   private leaveRequestsSubject = new BehaviorSubject<LeaveRequest[]>([]);
   public leaveRequests$ = this.leaveRequestsSubject.asObservable();
 
@@ -103,6 +106,17 @@ export class DatabaseService {
       this.leaveRequestsSubject.next(JSON.parse(storedLeaveRequests));
     }
 
+    const storedPublishedMonths = localStorage.getItem('mock_db_published_months');
+    if (storedPublishedMonths) {
+      this.publishedMonthsSubject.next(JSON.parse(storedPublishedMonths));
+    } else {
+      // Default to current month and previous month
+      const now = new Date();
+      const currentMonthKey = `${now.getFullYear()}-${now.getMonth() + 1}`;
+      const prevMonthKey = `${now.getFullYear()}-${now.getMonth()}`;
+      this.publishedMonthsSubject.next([prevMonthKey, currentMonthKey]);
+    }
+
     // Sync across tabs
     window.addEventListener('storage', (event) => {
       if (event.key === this.EMPLOYEES_KEY && event.newValue) {
@@ -120,6 +134,9 @@ export class DatabaseService {
       if (event.key === this.LEAVE_REQUESTS_KEY && event.newValue) {
         this.leaveRequestsSubject.next(JSON.parse(event.newValue));
       }
+      if (event.key === 'mock_db_published_months' && event.newValue) {
+        this.publishedMonthsSubject.next(JSON.parse(event.newValue));
+      }
     });
   }
 
@@ -131,6 +148,20 @@ export class DatabaseService {
   saveCompanySchedule(schedule: ScheduleDay[]) {
     localStorage.setItem(this.COMPANY_SCHEDULE_KEY, JSON.stringify(schedule));
     this.companyScheduleSubject.next(schedule);
+  }
+
+  publishMonth(year: number, month: number) {
+    const key = `${year}-${month + 1}`;
+    const current = this.publishedMonthsSubject.getValue();
+    if (!current.includes(key)) {
+      const updated = [...current, key];
+      localStorage.setItem('mock_db_published_months', JSON.stringify(updated));
+      this.publishedMonthsSubject.next(updated);
+    }
+  }
+
+  getPublishedMonthsSync(): string[] {
+    return this.publishedMonthsSubject.getValue();
   }
 
   saveDepartmentSchedule(department: string, schedule: ScheduleDay[]) {

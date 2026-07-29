@@ -7,19 +7,26 @@ import { Router } from '@angular/router';
 import { DatabaseService, ScheduleDay } from '../../../core/services/database.service';
 import { AuthService } from '../../../core/services/auth';
 
+import { DatePickerModule } from 'primeng/datepicker';
+import { FormsModule } from '@angular/forms';
+
 @Component({
   selector: 'app-employee-attendance',
   standalone: true,
-  imports: [CommonModule, ButtonModule, TooltipModule, BadgeModule],
+  imports: [CommonModule, ButtonModule, TooltipModule, BadgeModule, DatePickerModule, FormsModule],
   templateUrl: './attendance.html',
   styleUrl: './attendance.scss'
 })
 export class Attendance implements OnInit {
   today: Date = new Date();
+  currentViewMonth: Date = new Date();
   hasConfirmed: boolean = false;
+  hasCheckedOut: boolean = false;
   attendanceStatus: 'present' | 'absent' | null = null;
   isLeaveSubmitted: boolean = false;
   showSuccessAnimation: boolean = false;
+  isSchedulePublished: boolean = true;
+  firstCheckInTime: string | null = null;
   
   weekDays = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
   employeeSchedule: any[] = [];
@@ -35,6 +42,17 @@ export class Attendance implements OnInit {
   generateMockSchedule() {
     this.employeeSchedule = [];
     let baseSchedule: ScheduleDay[] | null = null;
+    
+    const year = this.currentViewMonth.getFullYear();
+    const month = this.currentViewMonth.getMonth();
+    const key = `${year}-${month + 1}`;
+    
+    const publishedMonths = this.db.getPublishedMonthsSync();
+    this.isSchedulePublished = publishedMonths.includes(key);
+    
+    if (!this.isSchedulePublished) {
+        return; // Don't generate anything if not published
+    }
     
     const user = this.authService.getCurrentUser();
     const userEmail = user ? user.email : '';
@@ -54,8 +72,8 @@ export class Attendance implements OnInit {
     // Fallback if no schedule in DB
     if (!baseSchedule || baseSchedule.length === 0) {
         baseSchedule = [];
-        const year = this.today.getFullYear();
-        const month = this.today.getMonth();
+        const year = this.currentViewMonth.getFullYear();
+        const month = this.currentViewMonth.getMonth();
         const firstDay = new Date(year, month, 1).getDay();
         const daysInMonth = new Date(year, month + 1, 0).getDate();
         let startOffset = firstDay === 0 ? 6 : firstDay - 1;
@@ -76,8 +94,12 @@ export class Attendance implements OnInit {
             return;
         }
 
-        let isToday = cell.date === this.today.getDate();
-        let isPast = cell.date < this.today.getDate();
+        let isToday = cell.date === this.today.getDate() && 
+                      this.currentViewMonth.getMonth() === this.today.getMonth() && 
+                      this.currentViewMonth.getFullYear() === this.today.getFullYear();
+        let isPast = (this.currentViewMonth.getFullYear() < this.today.getFullYear()) || 
+                     (this.currentViewMonth.getFullYear() === this.today.getFullYear() && this.currentViewMonth.getMonth() < this.today.getMonth()) || 
+                     (this.currentViewMonth.getFullYear() === this.today.getFullYear() && this.currentViewMonth.getMonth() === this.today.getMonth() && cell.date < this.today.getDate());
         
         let checkIn = null;
         let checkOut = null;
@@ -110,53 +132,59 @@ export class Attendance implements OnInit {
     const rejectedLeaves = leaveRequests.filter(r => r.status === 'REJECTED');
     
     approvedLeaves.forEach(req => {
-      let startDay = this.today.getDate();
-      let endDay = this.today.getDate();
       if (req.dateRange && req.dateRange.length > 0) {
-        let startDate = req.dateRange[0] ? new Date(req.dateRange[0]) : this.today;
-        let endDate = req.dateRange[1] ? new Date(req.dateRange[1]) : (req.dateRange.length === 1 ? startDate : this.today);
+        let startDate = new Date(req.dateRange[0]);
+        let endDate = req.dateRange.length > 1 ? new Date(req.dateRange[1]) : startDate;
         
-        startDay = startDate.getDate();
-        endDay = endDate.getDate();
-      }
-      
-      this.employeeSchedule.forEach(cell => {
-        if (cell.date && cell.date >= startDay && cell.date <= endDay) {
-          cell.type = req.typeCode;
-          cell.isAbsent = true;
-          cell.isApprovedLeave = true;
-          cell.leaveReason = req.reason;
-          cell.checkIn = null;
-          cell.checkOut = null;
-          cell.totalHours = null;
+        // Iterate through all days between startDate and endDate
+        let currentDate = new Date(startDate);
+        while (currentDate <= endDate) {
+          if (currentDate.getFullYear() === this.currentViewMonth.getFullYear() && currentDate.getMonth() === this.currentViewMonth.getMonth()) {
+            let dayNum = currentDate.getDate();
+            this.employeeSchedule.forEach(cell => {
+              if (cell.date === dayNum) {
+                cell.type = req.typeCode;
+                cell.isAbsent = true;
+                cell.isApprovedLeave = true;
+                cell.leaveReason = req.reason;
+                cell.checkIn = null;
+                cell.checkOut = null;
+                cell.totalHours = null;
+                
+                // If it's today
+                if (cell.isToday) {
+                  this.hasConfirmed = true;
+                  this.attendanceStatus = 'absent';
+                  this.isLeaveSubmitted = true;
+                }
+              }
+            });
+          }
+          currentDate.setDate(currentDate.getDate() + 1);
         }
-      });
-      
-      const todayDate = this.today.getDate();
-      if (todayDate >= startDay && todayDate <= endDay) {
-        this.hasConfirmed = true;
-        this.attendanceStatus = 'absent';
-        this.isLeaveSubmitted = true;
       }
     });
 
     rejectedLeaves.forEach(req => {
-      let startDay = this.today.getDate();
-      let endDay = this.today.getDate();
       if (req.dateRange && req.dateRange.length > 0) {
-        let startDate = req.dateRange[0] ? new Date(req.dateRange[0]) : this.today;
-        let endDate = req.dateRange[1] ? new Date(req.dateRange[1]) : (req.dateRange.length === 1 ? startDate : this.today);
+        let startDate = new Date(req.dateRange[0]);
+        let endDate = req.dateRange.length > 1 ? new Date(req.dateRange[1]) : startDate;
         
-        startDay = startDate.getDate();
-        endDay = endDate.getDate();
-      }
-      
-      this.employeeSchedule.forEach(cell => {
-        if (cell.date && cell.date >= startDay && cell.date <= endDay) {
-          cell.isRejectedLeave = true;
-          cell.leaveReason = 'Từ chối: ' + req.reason;
+        // Iterate through all days between startDate and endDate
+        let currentDate = new Date(startDate);
+        while (currentDate <= endDate) {
+          if (currentDate.getFullYear() === this.currentViewMonth.getFullYear() && currentDate.getMonth() === this.currentViewMonth.getMonth()) {
+            let dayNum = currentDate.getDate();
+            this.employeeSchedule.forEach(cell => {
+              if (cell.date === dayNum) {
+                cell.isRejectedLeave = true;
+                cell.leaveReason = 'Từ chối: ' + req.reason;
+              }
+            });
+          }
+          currentDate.setDate(currentDate.getDate() + 1);
         }
-      });
+      }
     });
   }
 
@@ -192,8 +220,11 @@ export class Attendance implements OnInit {
     const todayCell = this.employeeSchedule.find(c => c.isToday);
     if (todayCell) {
       todayCell.isPresent = true;
-      const now = new Date();
-      todayCell.checkIn = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+      if (!this.firstCheckInTime) {
+        const now = new Date();
+        this.firstCheckInTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+      }
+      todayCell.checkIn = this.firstCheckInTime;
     }
 
     setTimeout(() => {
@@ -201,9 +232,26 @@ export class Attendance implements OnInit {
     }, 3200);
   }
 
+  checkoutAttendance() {
+    this.showSuccessAnimation = true;
+    this.hasCheckedOut = true;
+    const todayCell = this.employeeSchedule.find(c => c.isToday);
+    if (todayCell && todayCell.checkIn) {
+      const now = new Date();
+      const outHour = now.getHours().toString().padStart(2, '0');
+      const outMin = now.getMinutes().toString().padStart(2, '0');
+      todayCell.checkOut = `${outHour}:${outMin}`;
+      todayCell.totalHours = this.calculateTotalHours(todayCell.checkIn, todayCell.checkOut);
+    }
+
+    setTimeout(() => {
+      this.showSuccessAnimation = false;
+    }, 3200);
+  }
 
   resetAttendance() {
     this.hasConfirmed = false;
+    this.hasCheckedOut = false;
     this.attendanceStatus = null;
     this.isLeaveSubmitted = false;
     const todayCell = this.employeeSchedule.find(c => c.isToday);
@@ -215,5 +263,15 @@ export class Attendance implements OnInit {
       todayCell.checkOut = null;
       todayCell.totalHours = null;
     }
+  }
+
+  prevMonth() {
+    this.currentViewMonth = new Date(this.currentViewMonth.getFullYear(), this.currentViewMonth.getMonth() - 1, 1);
+    this.generateMockSchedule();
+  }
+
+  nextMonth() {
+    this.currentViewMonth = new Date(this.currentViewMonth.getFullYear(), this.currentViewMonth.getMonth() + 1, 1);
+    this.generateMockSchedule();
   }
 }

@@ -215,6 +215,10 @@
         <!-- STEP 1 -->
         <div *ngIf="activeIndex === 0" class="p-fluid max-w-30rem mx-auto">
             <div class="field">
+                <label class="font-bold">Tháng áp dụng</label>
+                <p-datePicker [(ngModel)]="currentMonth" view="month" dateFormat="mm/yy" [readonlyInput]="true" [minDate]="minDate" (onSelect)="generateCalendar()"></p-datePicker>
+            </div>
+            <div class="field mt-3">
                 <label class="font-bold">Chọn phương án tạo lịch</label>
                 <p-select [options]="options" [(ngModel)]="selectedOption" optionLabel="label" optionValue="value"
                     styleClass="w-full"></p-select>
