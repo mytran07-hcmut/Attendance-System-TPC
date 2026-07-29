@@ -22,11 +22,7 @@ import { DatabaseService, DepartmentRequest } from '../../../core/services/datab
 })
 export class Dashboard {
   departmentScheduleRequests: DepartmentRequest[] = [];
-  pendingRequests = [
-    { id: 1, employee: 'Nguyễn Văn A', department: 'IT', type: 'Xin nghỉ phép', reason: 'Nghỉ ốm', date: '10/08/2026', status: 'Chờ duyệt' },
-    { id: 2, employee: 'Trần Thị B', department: 'Kế toán', type: 'Đăng ký làm thêm', reason: 'Xử lý báo cáo tháng', date: '12/08/2026', status: 'Chờ duyệt' },
-    { id: 3, employee: 'Lê Văn C', department: 'Nhân sự', type: 'Đi trễ', reason: 'Kẹt xe', date: '09/08/2026', status: 'Chờ duyệt' }
-  ];
+  pendingRequests: any[] = [];
 
   presentEmployees = [
     { id: 1, name: 'Phạm Thị D', department: 'IT', checkInTime: '08:00 AM' },
@@ -50,11 +46,24 @@ export class Dashboard {
     this.db.deptRequests$.subscribe(requests => {
       this.departmentScheduleRequests = Object.values(requests).filter(req => req.status === 'PENDING_HR');
     });
+    this.db.leaveRequests$.subscribe(requests => {
+      this.pendingRequests = Object.values(requests).filter(req => req.status === 'PENDING');
+    });
   }
 
   approveDepartmentSchedule(req: DepartmentRequest) {
     this.db.updateDepartmentRequest(req.department, 'APPROVED');
     this.messageService.add({ severity: 'success', summary: 'Thành công', detail: `Đã duyệt lịch cho ${req.department}` });
+  }
+
+  formatDateRange(dates: string[]): string {
+    if (!dates || dates.length === 0) return '';
+    if (dates.length === 1) {
+      return new Date(dates[0]).toLocaleDateString('vi-VN');
+    }
+    const start = new Date(dates[0]).toLocaleDateString('vi-VN');
+    const end = new Date(dates[dates.length - 1]).toLocaleDateString('vi-VN');
+    return start === end ? start : `${start} - ${end}`;
   }
 
   scrollToPending() {
@@ -78,12 +87,14 @@ export class Dashboard {
   }
 
   approve(request: any) {
-    request.status = 'Đã duyệt';
+    this.db.updateLeaveRequestStatus(request.id, 'APPROVED');
+    this.messageService.add({ severity: 'success', summary: 'Thành công', detail: 'Đã duyệt đơn' });
     this.displayDialog = false;
   }
 
   reject(request: any) {
-    request.status = 'Từ chối';
+    this.db.updateLeaveRequestStatus(request.id, 'REJECTED');
+    this.messageService.add({ severity: 'info', summary: 'Thông báo', detail: 'Đã từ chối đơn' });
     this.displayDialog = false;
   }
 }

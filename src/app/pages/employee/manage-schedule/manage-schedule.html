@@ -38,8 +38,8 @@
                             <div class="text-right font-medium text-600 mb-2">{{day.date}}</div>
                             
                             <div *ngIf="day.date" class="mt-auto w-full text-center p-1 border-round text-sm font-bold"
-                                 [ngStyle]="{'background-color': day.type === 'HC' ? '#f4cccc' : (day.type === 'OFF' ? '#d9d2e9' : '#fff')}">
-                                {{day.type === 'HC' ? 'Hành chính' : 'Ngày nghỉ'}}
+                                 [ngStyle]="{'background-color': day.type === 'HC' ? '#f4cccc' : (day.type === 'WFH' ? '#ffe5b4' : (day.type === 'OFF' ? '#d9d2e9' : '#fff'))}">
+                                {{day.type}}
                             </div>
                         </div>
                     </div>
@@ -49,6 +49,10 @@
                     <div class="flex align-items-center gap-2">
                         <div class="w-2rem h-1rem border-round" style="background-color: #f4cccc"></div>
                         <span class="text-sm font-medium">Hành chính (HC)</span>
+                    </div>
+                    <div class="flex align-items-center gap-2">
+                        <div class="w-2rem h-1rem border-round" style="background-color: #ffe5b4"></div>
+                        <span class="text-sm font-medium">Làm việc tại nhà (WFH)</span>
                     </div>
                     <div class="flex align-items-center gap-2">
                         <div class="w-2rem h-1rem border-round" style="background-color: #d9d2e9"></div>

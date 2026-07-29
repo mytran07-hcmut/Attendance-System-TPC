@@ -27,38 +27,9 @@ export class Attendance implements OnInit {
   constructor(private router: Router, private db: DatabaseService, private authService: AuthService) {}
 
   ngOnInit() {
-    this.generateMockSchedule();
-    
-    // Check if returning from leave request
-    if (history.state && history.state.leaveSubmitted) {
-      const dateRange = history.state.dateRange;
-      
-      let startDay = this.today.getDate();
-      let endDay = this.today.getDate();
-      
-      if (dateRange && dateRange.length > 0) {
-        let startDate = dateRange[0] ? new Date(dateRange[0]) : this.today;
-        let endDate = dateRange[1] ? new Date(dateRange[1]) : startDate;
-        
-        startDay = startDate.getDate();
-        endDay = endDate.getDate();
-      }
-      
-      this.employeeSchedule.forEach(cell => {
-        if (cell.date && cell.date >= startDay && cell.date <= endDay) {
-          cell.isAbsent = true;
-          cell.leaveReason = history.state.reason;
-        }
-      });
-      
-      // Only hide the check-in box for today if the leave request includes today
-      const todayDate = this.today.getDate();
-      if (todayDate >= startDay && todayDate <= endDay) {
-        this.hasConfirmed = true;
-        this.attendanceStatus = 'absent';
-        this.isLeaveSubmitted = true;
-      }
-    }
+    this.db.leaveRequests$.subscribe(() => {
+      this.generateMockSchedule();
+    });
   }
 
   generateMockSchedule() {
@@ -132,6 +103,61 @@ export class Attendance implements OnInit {
             totalHours: totalHours
         });
     });
+
+    // Apply leave requests
+    const leaveRequests = this.db.getLeaveRequestsByEmployeeSync(userEmail);
+    const approvedLeaves = leaveRequests.filter(r => r.status === 'APPROVED');
+    const rejectedLeaves = leaveRequests.filter(r => r.status === 'REJECTED');
+    
+    approvedLeaves.forEach(req => {
+      let startDay = this.today.getDate();
+      let endDay = this.today.getDate();
+      if (req.dateRange && req.dateRange.length > 0) {
+        let startDate = req.dateRange[0] ? new Date(req.dateRange[0]) : this.today;
+        let endDate = req.dateRange[1] ? new Date(req.dateRange[1]) : (req.dateRange.length === 1 ? startDate : this.today);
+        
+        startDay = startDate.getDate();
+        endDay = endDate.getDate();
+      }
+      
+      this.employeeSchedule.forEach(cell => {
+        if (cell.date && cell.date >= startDay && cell.date <= endDay) {
+          cell.type = req.typeCode;
+          cell.isAbsent = true;
+          cell.isApprovedLeave = true;
+          cell.leaveReason = req.reason;
+          cell.checkIn = null;
+          cell.checkOut = null;
+          cell.totalHours = null;
+        }
+      });
+      
+      const todayDate = this.today.getDate();
+      if (todayDate >= startDay && todayDate <= endDay) {
+        this.hasConfirmed = true;
+        this.attendanceStatus = 'absent';
+        this.isLeaveSubmitted = true;
+      }
+    });
+
+    rejectedLeaves.forEach(req => {
+      let startDay = this.today.getDate();
+      let endDay = this.today.getDate();
+      if (req.dateRange && req.dateRange.length > 0) {
+        let startDate = req.dateRange[0] ? new Date(req.dateRange[0]) : this.today;
+        let endDate = req.dateRange[1] ? new Date(req.dateRange[1]) : (req.dateRange.length === 1 ? startDate : this.today);
+        
+        startDay = startDate.getDate();
+        endDay = endDate.getDate();
+      }
+      
+      this.employeeSchedule.forEach(cell => {
+        if (cell.date && cell.date >= startDay && cell.date <= endDay) {
+          cell.isRejectedLeave = true;
+          cell.leaveReason = 'Từ chối: ' + req.reason;
+        }
+      });
+    });
   }
 
   calculateTotalHours(checkIn: string, checkOut: string): string {
@@ -154,6 +180,7 @@ export class Attendance implements OnInit {
       case 'AL': return '#d9ead3';
       case 'KP': return '#c9daf8';
       case 'L': return '#fff2cc';
+      case 'WFH': return '#ffe5b4';
       default: return '#ffffff';
     }
   }
