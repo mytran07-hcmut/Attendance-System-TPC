@@ -99,18 +99,20 @@ export class Schedule implements OnInit {
 
   // Calendar setup
   currentMonth = new Date();
+  minDate: Date;
   monthDays: any[] = [];
   weekDays = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
 
   constructor(private messageService: MessageService, private route: ActivatedRoute, private db: DatabaseService) {
+    const today = new Date();
+    this.minDate = new Date(today.getFullYear(), today.getMonth() + 1, 1);
     this.generateCalendar();
   }
 
   ngOnInit() {
     this.route.queryParams.subscribe(params => {
       if (params['action'] === 'create') {
-        this.viewState = 'wizard';
-        this.activeIndex = 0;
+        this.openWizard();
       }
     });
     this.db.employees$.subscribe(data => {
@@ -193,6 +195,11 @@ export class Schedule implements OnInit {
     this.viewState = 'wizard';
     this.activeIndex = 0;
     this.selectedOption = 1;
+    
+    // Set to next month when opening wizard to create new schedule
+    const today = new Date();
+    this.currentMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+    this.generateCalendar();
   }
 
   cancelWizard() {
@@ -257,6 +264,7 @@ export class Schedule implements OnInit {
   publish() {
     if (this.selectedOption === 1) {
       this.db.saveCompanySchedule(this.monthDays);
+      this.db.publishMonth(this.currentMonth.getFullYear(), this.currentMonth.getMonth());
       this.messageService.add({ severity: 'success', summary: 'Thành công', detail: 'Đã tạo và đăng lịch làm việc toàn công ty!' });
     } else if (this.selectedOption === 2) {
       if (this.selectedDepartment && this.selectedDepartment.name) {
