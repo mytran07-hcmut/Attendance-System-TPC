@@ -4,7 +4,7 @@ export const EMPLOYEES_MOCK = [
         "code": "NV001",
         "fullName": "Nguyễn Văn An",
         "department": "Phòng Sales",
-        "title": "Admin (Tổng Giám đốc)",
+        "title": "Trưởng phòng",
         "email": "an.nguyen@tpc.com",
         "phone": "0901000000"
     },
@@ -13,7 +13,7 @@ export const EMPLOYEES_MOCK = [
         "code": "NV002",
         "fullName": "Trần Thị Bình",
         "department": "Phòng Nhân sự",
-        "title": "Admin (Phó Giám đốc)",
+        "title": "HR (Trưởng phòng)",
         "email": "binh.tran@tpc.com",
         "phone": "0901000001"
     },
@@ -22,7 +22,7 @@ export const EMPLOYEES_MOCK = [
         "code": "NV003",
         "fullName": "Lê Hoàng Cường",
         "department": "Phòng Nhân sự",
-        "title": "Trưởng phòng",
+        "title": "HR",
         "email": "cuong.le@tpc.com",
         "phone": "0901000002"
     },
@@ -31,7 +31,7 @@ export const EMPLOYEES_MOCK = [
         "code": "NV004",
         "fullName": "Phạm Dung",
         "department": "Ban Giám đốc",
-        "title": "Trưởng phòng",
+        "title": "Admin (Tổng Giám đốc)",
         "email": "dung.pham@tpc.com",
         "phone": "0901000003"
     },
@@ -40,7 +40,7 @@ export const EMPLOYEES_MOCK = [
         "code": "NV005",
         "fullName": "Hoàng Minh Đức",
         "department": "Ban Giám đốc",
-        "title": "Admin",
+        "title": "Admin (Giám đốc)",
         "email": "duc.hoang@tpc.com",
         "phone": "0901000004"
     },
@@ -67,7 +67,7 @@ export const EMPLOYEES_MOCK = [
         "code": "NV008",
         "fullName": "Bùi Mỹ Duyên",
         "department": "Phòng Kế toán",
-        "title": "Nhân viên (Kế toán)",
+        "title": "Trưởng phòng",
         "email": "duyen.bui@tpc.com",
         "phone": "0901000007"
     },
@@ -76,7 +76,7 @@ export const EMPLOYEES_MOCK = [
         "code": "NV009",
         "fullName": "Đỗ Văn Giang",
         "department": "Phòng IT",
-        "title": "Nhân viên (IT)",
+        "title": "Trưởng phòng",
         "email": "giang.do@tpc.com",
         "phone": "0901000008"
     },
@@ -103,7 +103,7 @@ export const EMPLOYEES_MOCK = [
         "code": "NV012",
         "fullName": "Lý Thị Hằng",
         "department": "Phòng Marketing",
-        "title": "Nhân viên (Marketing)",
+        "title": "Trưởng phòng",
         "email": "hang.ly@tpc.com",
         "phone": "0901000011"
     },
@@ -121,7 +121,7 @@ export const EMPLOYEES_MOCK = [
         "code": "NV014",
         "fullName": "Đinh Thị Hoa",
         "department": "Phòng Sales",
-        "title": "Trưởng phòng",
+        "title": "Nhân viên (Sales)",
         "email": "hoa.dinh@tpc.com",
         "phone": "0901000013"
     },
@@ -148,7 +148,7 @@ export const EMPLOYEES_MOCK = [
         "code": "NV017",
         "fullName": "Nguyễn Khánh Hùng",
         "department": "Ban Giám đốc",
-        "title": "Nhân viên (Ban Giám đốc)",
+        "title": "Admin (Giám đốc)",
         "email": "hung.nguyen@tpc.com",
         "phone": "0901000016"
     },
@@ -184,7 +184,7 @@ export const EMPLOYEES_MOCK = [
         "code": "NV021",
         "fullName": "Hoàng Quốc Khánh",
         "department": "Phòng Marketing",
-        "title": "Trưởng phòng",
+        "title": "Nhân viên (Marketing)",
         "email": "khanh.hoang@tpc.com",
         "phone": "0901000020"
     },
@@ -238,7 +238,7 @@ export const EMPLOYEES_MOCK = [
         "code": "NV027",
         "fullName": "Dương Văn Nam",
         "department": "Ban Giám đốc",
-        "title": "Nhân viên (Ban Giám đốc)",
+        "title": "Admin (Giám đốc)",
         "email": "nam.duong@tpc.com",
         "phone": "0901000026"
     },
@@ -256,7 +256,7 @@ export const EMPLOYEES_MOCK = [
         "code": "NV029",
         "fullName": "Trịnh Minh Nghĩa",
         "department": "Phòng IT",
-        "title": "Trưởng phòng",
+        "title": "Nhân viên (IT)",
         "email": "nghia.trinh@tpc.com",
         "phone": "0901000028"
     },
@@ -283,7 +283,7 @@ export const EMPLOYEES_MOCK = [
         "code": "NV032",
         "fullName": "Võ Thị Oanh",
         "department": "Ban Giám đốc",
-        "title": "Nhân viên (Ban Giám đốc)",
+        "title": "Admin (Giám đốc)",
         "email": "oanh.vo@tpc.com",
         "phone": "0901000031"
     },
@@ -319,7 +319,7 @@ export const EMPLOYEES_MOCK = [
         "code": "NV036",
         "fullName": "Phạm Thúy Quyên",
         "department": "Ban Giám đốc",
-        "title": "Nhân viên (Ban Giám đốc)",
+        "title": "Admin (Giám đốc)",
         "email": "quyen.pham@tpc.com",
         "phone": "0901000035"
     },
@@ -328,7 +328,7 @@ export const EMPLOYEES_MOCK = [
         "code": "NV037",
         "fullName": "Hoàng Văn Quỳnh",
         "department": "Phòng Sales",
-        "title": "Trưởng phòng",
+        "title": "Nhân viên (Sales)",
         "email": "quynh.hoang@tpc.com",
         "phone": "0901000036"
     },
@@ -337,7 +337,7 @@ export const EMPLOYEES_MOCK = [
         "code": "NV038",
         "fullName": "Vũ Thị Sang",
         "department": "Ban Giám đốc",
-        "title": "Nhân viên (Ban Giám đốc)",
+        "title": "Admin (Giám đốc)",
         "email": "sang.vu@tpc.com",
         "phone": "0901000037"
     },
@@ -418,7 +418,7 @@ export const EMPLOYEES_MOCK = [
         "code": "NV047",
         "fullName": "Phan Văn Trung",
         "department": "Phòng Nhân sự",
-        "title": "Trưởng phòng",
+        "title": "HR",
         "email": "trung.phan@tpc.com",
         "phone": "0901000046"
     },
@@ -427,7 +427,7 @@ export const EMPLOYEES_MOCK = [
         "code": "NV048",
         "fullName": "Võ Thị Tú",
         "department": "Phòng Kế toán",
-        "title": "Admin (Trưởng nhóm Hành chính)",
+        "title": "Nhân viên (Kế toán)",
         "email": "tu.vo@tpc.com",
         "phone": "0901000047"
     },
@@ -454,7 +454,7 @@ export const EMPLOYEES_MOCK = [
         "code": "NV051",
         "fullName": "Lê Văn Tùng",
         "department": "Phòng Nhân sự",
-        "title": "Admin (Chuyên viên Lễ tân/Văn phòng)",
+        "title": "HR",
         "email": "tung.le@tpc.com",
         "phone": "0901000050"
     },
@@ -463,7 +463,7 @@ export const EMPLOYEES_MOCK = [
         "code": "NV052",
         "fullName": "Phạm Thị Uyên",
         "department": "Phòng Sales",
-        "title": "Admin (Quản trị Văn phòng)",
+        "title": "Nhân viên (Sales)",
         "email": "uyen.pham@tpc.com",
         "phone": "0901000051"
     },
@@ -481,7 +481,7 @@ export const EMPLOYEES_MOCK = [
         "code": "NV054",
         "fullName": "Vũ Thị Xuân",
         "department": "Phòng IT",
-        "title": "Admin (Pháp lý & Hợp đồng)",
+        "title": "Nhân viên (IT)",
         "email": "xuan.vu@tpc.com",
         "phone": "0901000053"
     },
@@ -490,7 +490,7 @@ export const EMPLOYEES_MOCK = [
         "code": "NV055",
         "fullName": "Đặng Văn Yên",
         "department": "Ban Giám đốc",
-        "title": "Admin (Quản trị Cơ sở vật chất)",
+        "title": "Admin (Giám đốc)",
         "email": "yen.dang@tpc.com",
         "phone": "0901000054"
     },
@@ -499,7 +499,7 @@ export const EMPLOYEES_MOCK = [
         "code": "NV056",
         "fullName": "Bùi Thị Hải Yến",
         "department": "Ban Giám đốc",
-        "title": "Trưởng phòng",
+        "title": "Admin (Giám đốc)",
         "email": "yen.bui@tpc.com",
         "phone": "0901000055"
     },
@@ -508,7 +508,7 @@ export const EMPLOYEES_MOCK = [
         "code": "NV057",
         "fullName": "Đỗ Minh Anh",
         "department": "Phòng Nhân sự",
-        "title": "Phó phòng",
+        "title": "HR",
         "email": "anh.do@tpc.com",
         "phone": "0901000056"
     },
@@ -580,7 +580,7 @@ export const EMPLOYEES_MOCK = [
         "code": "NV065",
         "fullName": "Nguyễn Văn Hà",
         "department": "Phòng Nhân sự",
-        "title": "Trưởng phòng",
+        "title": "HR",
         "email": "ha.nguyen@tpc.com",
         "phone": "0901000064"
     },
@@ -589,7 +589,7 @@ export const EMPLOYEES_MOCK = [
         "code": "NV066",
         "fullName": "Trần Thị Hảo",
         "department": "Phòng IT",
-        "title": "Admin (Content Specialist)",
+        "title": "Nhân viên (IT)",
         "email": "hao.tran@tpc.com",
         "phone": "0901000065"
     },
@@ -598,7 +598,7 @@ export const EMPLOYEES_MOCK = [
         "code": "NV067",
         "fullName": "Lê Văn Hậu",
         "department": "Phòng IT",
-        "title": "Admin (Digital Marketing)",
+        "title": "Nhân viên (IT)",
         "email": "hau.le@tpc.com",
         "phone": "0901000066"
     },
@@ -607,7 +607,7 @@ export const EMPLOYEES_MOCK = [
         "code": "NV068",
         "fullName": "Phạm Thị Hiền",
         "department": "Phòng Kế toán",
-        "title": "Admin (Event Specialist)",
+        "title": "Nhân viên (Kế toán)",
         "email": "hien.pham@tpc.com",
         "phone": "0901000067"
     },
@@ -616,7 +616,7 @@ export const EMPLOYEES_MOCK = [
         "code": "NV069",
         "fullName": "Hoàng Văn Hoài",
         "department": "Phòng Marketing",
-        "title": "Admin (Graphic Designer)",
+        "title": "Nhân viên (Marketing)",
         "email": "hoai.hoang@tpc.com",
         "phone": "0901000068"
     },
@@ -625,7 +625,7 @@ export const EMPLOYEES_MOCK = [
         "code": "NV070",
         "fullName": "Vũ Thị Hồng",
         "department": "Phòng Kế toán",
-        "title": "Admin (Media & Video Editor)",
+        "title": "Nhân viên (Kế toán)",
         "email": "hong.vu@tpc.com",
         "phone": "0901000069"
     },
@@ -634,7 +634,7 @@ export const EMPLOYEES_MOCK = [
         "code": "NV071",
         "fullName": "Đặng Văn Hùng",
         "department": "Phòng IT",
-        "title": "Trưởng phòng",
+        "title": "Nhân viên (IT)",
         "email": "hung.dang@tpc.com",
         "phone": "0901000070"
     },
@@ -643,7 +643,7 @@ export const EMPLOYEES_MOCK = [
         "code": "NV072",
         "fullName": "Bùi Thị Hương",
         "department": "Phòng Nhân sự",
-        "title": "Admin (Kế toán tổng hợp)",
+        "title": "HR",
         "email": "huong.bui@tpc.com",
         "phone": "0901000071"
     },
@@ -652,7 +652,7 @@ export const EMPLOYEES_MOCK = [
         "code": "NV073",
         "fullName": "Đỗ Văn Hữu",
         "department": "Phòng IT",
-        "title": "Admin (Kế toán thanh toán)",
+        "title": "Nhân viên (IT)",
         "email": "huu.do@tpc.com",
         "phone": "0901000072"
     },
@@ -661,7 +661,7 @@ export const EMPLOYEES_MOCK = [
         "code": "NV074",
         "fullName": "Ngô Thị Khanh",
         "department": "Phòng Marketing",
-        "title": "Admin (Kế toán thuế)",
+        "title": "Nhân viên (Marketing)",
         "email": "khanh.ngo@tpc.com",
         "phone": "0901000073"
     },
@@ -670,7 +670,7 @@ export const EMPLOYEES_MOCK = [
         "code": "NV075",
         "fullName": "Dương Văn Khoa",
         "department": "Phòng Marketing",
-        "title": "Admin (Thủ quỹ)",
+        "title": "Nhân viên (Marketing)",
         "email": "khoa.duong@tpc.com",
         "phone": "0901000074"
     },
@@ -679,7 +679,7 @@ export const EMPLOYEES_MOCK = [
         "code": "NV076",
         "fullName": "Lý Thị Khôi",
         "department": "Phòng Marketing",
-        "title": "Trưởng phòng",
+        "title": "Nhân viên (Marketing)",
         "email": "khoi.ly@tpc.com",
         "phone": "0901000075"
     },
@@ -688,7 +688,7 @@ export const EMPLOYEES_MOCK = [
         "code": "NV077",
         "fullName": "Trịnh Văn Kiên",
         "department": "Phòng Nhân sự",
-        "title": "Admin (System Administrator)",
+        "title": "HR",
         "email": "kien.trinh@tpc.com",
         "phone": "0901000076"
     },
@@ -697,7 +697,7 @@ export const EMPLOYEES_MOCK = [
         "code": "NV078",
         "fullName": "Đinh Thị Kiều",
         "department": "Phòng Sales",
-        "title": "Admin (Data Analyst - HR Analytics)",
+        "title": "Nhân viên (Sales)",
         "email": "kieu.dinh@tpc.com",
         "phone": "0901000077"
     },
@@ -706,7 +706,7 @@ export const EMPLOYEES_MOCK = [
         "code": "NV079",
         "fullName": "Phan Văn Lộc",
         "department": "Phòng Kế toán",
-        "title": "Admin (IT Support)",
+        "title": "Nhân viên (Kế toán)",
         "email": "loc.phan@tpc.com",
         "phone": "0901000078"
     },
@@ -715,7 +715,7 @@ export const EMPLOYEES_MOCK = [
         "code": "NV080",
         "fullName": "Võ Thị Luân",
         "department": "Phòng Marketing",
-        "title": "Admin (Web Master)",
+        "title": "Nhân viên (Marketing)",
         "email": "luan.vo@tpc.com",
         "phone": "0901000079"
     },
@@ -724,7 +724,7 @@ export const EMPLOYEES_MOCK = [
         "code": "NV081",
         "fullName": "Nguyễn Văn Lương",
         "department": "Phòng Kế toán",
-        "title": "Trưởng phòng",
+        "title": "Nhân viên (Kế toán)",
         "email": "luong.nguyen@tpc.com",
         "phone": "0901000080"
     },
@@ -742,7 +742,7 @@ export const EMPLOYEES_MOCK = [
         "code": "NV083",
         "fullName": "Lê Văn Mạnh",
         "department": "Ban Giám đốc",
-        "title": "Nhân viên (Ban Giám đốc)",
+        "title": "Admin (Giám đốc)",
         "email": "manh.le@tpc.com",
         "phone": "0901000082"
     },
@@ -760,7 +760,7 @@ export const EMPLOYEES_MOCK = [
         "code": "NV085",
         "fullName": "Hoàng Văn Ngân",
         "department": "Ban Giám đốc",
-        "title": "Nhân viên (Ban Giám đốc)",
+        "title": "Admin (Giám đốc)",
         "email": "ngan.hoang@tpc.com",
         "phone": "0901000084"
     },
@@ -769,7 +769,7 @@ export const EMPLOYEES_MOCK = [
         "code": "NV086",
         "fullName": "Vũ Thị Ngọc",
         "department": "Phòng Kế toán",
-        "title": "Trưởng phòng",
+        "title": "Nhân viên (Kế toán)",
         "email": "ngoc.vu@tpc.com",
         "phone": "0901000085"
     },
@@ -796,7 +796,7 @@ export const EMPLOYEES_MOCK = [
         "code": "NV089",
         "fullName": "Đỗ Văn Pháp",
         "department": "Ban Giám đốc",
-        "title": "Nhân viên (Ban Giám đốc)",
+        "title": "Admin (Giám đốc)",
         "email": "phap.do@tpc.com",
         "phone": "0901000088"
     },
@@ -814,7 +814,7 @@ export const EMPLOYEES_MOCK = [
         "code": "NV091",
         "fullName": "Dương Văn Phúc",
         "department": "Ban Giám đốc",
-        "title": "Trưởng phòng (Giám đốc chi nhánh)",
+        "title": "Admin (Giám đốc)",
         "email": "phuc.duong@tpc.com",
         "phone": "0901000090"
     },
@@ -823,7 +823,7 @@ export const EMPLOYEES_MOCK = [
         "code": "NV092",
         "fullName": "Lý Thị Phượng",
         "department": "Phòng Nhân sự",
-        "title": "Admin (Hành chính Tổng hợp)",
+        "title": "HR",
         "email": "phuong.ly@tpc.com",
         "phone": "0901000091"
     },
@@ -832,7 +832,7 @@ export const EMPLOYEES_MOCK = [
         "code": "NV093",
         "fullName": "Trịnh Văn Quý",
         "department": "Ban Giám đốc",
-        "title": "Nhân viên (Ban Giám đốc)",
+        "title": "Admin (Giám đốc)",
         "email": "quy.trinh@tpc.com",
         "phone": "0901000092"
     },
@@ -859,7 +859,7 @@ export const EMPLOYEES_MOCK = [
         "code": "NV096",
         "fullName": "Võ Thị Sơn",
         "department": "Phòng Sales",
-        "title": "Trưởng phòng (Giám đốc chi nhánh)",
+        "title": "Nhân viên (Sales)",
         "email": "son.vo@tpc.com",
         "phone": "0901000095"
     },
@@ -868,7 +868,7 @@ export const EMPLOYEES_MOCK = [
         "code": "NV097",
         "fullName": "Nguyễn Văn Tâm",
         "department": "Phòng Nhân sự",
-        "title": "Admin (Hành chính)",
+        "title": "HR",
         "email": "tam.nguyen@tpc.com",
         "phone": "0901000096"
     },
