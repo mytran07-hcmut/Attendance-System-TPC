@@ -1,0 +1,34 @@
+.calendar-cell {
+    position: relative;
+    overflow: hidden;
+}
+
+.edit-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.2s ease-in-out;
+    cursor: pointer;
+    z-index: 10;
+}
+
+.calendar-cell:hover .edit-overlay {
+    opacity: 1;
+}
+
+.symbol-tag {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    border: 1px solid #ccc;
+    color: #333;
+}

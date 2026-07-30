@@ -58,12 +58,19 @@
 <p-dialog [header]="'Chi tiết lịch làm việc - ' + (selectedEmployee?.employee || '')"
     [(visible)]="displayEmployeeDetails" [modal]="true" [style]="{width: '70vw'}" [maximizable]="true">
     <div class="p-4">
-        <div class="flex align-items-center mb-4">
-            <i class="pi pi-user mr-3 text-4xl text-primary"></i>
-            <div>
-                <h3 class="m-0">{{selectedEmployee?.employee}}</h3>
-                <span class="text-600">{{selectedEmployee?.department}}</span>
+        <div class="flex justify-content-between align-items-center mb-4">
+            <div class="flex align-items-center">
+                <i class="pi pi-user mr-3 text-4xl text-primary"></i>
+                <div>
+                    <h3 class="m-0">{{selectedEmployee?.employee}}</h3>
+                    <span class="text-600">{{selectedEmployee?.department}}</span>
+                </div>
             </div>
+            
+            <button pButton pRipple [label]="isEditingSchedule ? 'Hoàn tất' : 'Chỉnh sửa'" 
+                    [icon]="isEditingSchedule ? 'pi pi-check' : 'pi pi-pencil'" 
+                    [class]="isEditingSchedule ? 'p-button-success' : 'p-button-outlined p-button-success'" 
+                    (click)="isEditingSchedule = !isEditingSchedule"></button>
         </div>
 
         <div class="w-full border-round overflow-hidden mt-4" style="border: 1px solid var(--surface-d)">
@@ -72,8 +79,12 @@
             </div>
             <div class="flex flex-wrap">
                 <div *ngFor="let cell of employeeSchedule"
-                    class="flex flex-column p-2 border-right-1 border-bottom-1 border-300"
+                    class="flex flex-column p-2 border-right-1 border-bottom-1 border-300 calendar-cell"
                     style="width: 14.28%; height: 100px;" [ngClass]="{'bg-surface-100': cell.isWeekend}">
+                    
+                    <div *ngIf="isEditingSchedule && cell.date" class="edit-overlay" (click)="editDay(cell)">
+                        <i class="pi pi-pencil text-white text-3xl"></i>
+                    </div>
 
                     <div class="text-right text-600 font-bold text-sm">{{cell.date}}</div>
 
@@ -101,5 +112,30 @@
     <ng-template pTemplate="footer">
         <button pButton pRipple label="Đóng" icon="pi pi-times" class="p-button-text"
             (click)="displayEmployeeDetails = false"></button>
+    </ng-template>
+</p-dialog>
+
+<!-- Edit Day Dialog -->
+<p-dialog header="Chỉnh sửa ký hiệu" [(visible)]="displayEditDayDialog" [modal]="true" [style]="{width: '380px'}">
+    <div class="flex align-items-center gap-4 mt-3 mb-4">
+        <label class="font-bold white-space-nowrap">Ký hiệu</label>
+        <p-select [options]="symbolOptions" [(ngModel)]="editingCell.type" *ngIf="editingCell" appendTo="body" optionValue="value" class="flex-grow-1" [style]="{'width': '100%'}">
+            <ng-template let-selectedOption pTemplate="selectedItem">
+                <div class="flex align-items-center gap-3" *ngIf="selectedOption">
+                    <span class="symbol-tag" [ngStyle]="{'background-color': selectedOption.color}">{{selectedOption.value}}</span>
+                    <span>{{selectedOption.label}}</span>
+                </div>
+            </ng-template>
+            <ng-template let-option pTemplate="item">
+                <div class="flex align-items-center gap-3">
+                    <span class="symbol-tag" [ngStyle]="{'background-color': option.color}">{{option.value}}</span>
+                    <span>{{option.label}}</span>
+                </div>
+            </ng-template>
+        </p-select>
+    </div>
+    <ng-template pTemplate="footer">
+        <button pButton pRipple label="Hủy" icon="pi pi-times" class="p-button-text" (click)="displayEditDayDialog = false"></button>
+        <button pButton pRipple label="Lưu" icon="pi pi-check" class="p-button-primary" (click)="saveDay()"></button>
     </ng-template>
 </p-dialog>
