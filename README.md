@@ -1,4 +1,4 @@
-# Attendance System TCP
+# Attendance System TPC
 
 Đây là hệ thống quản lý chấm công và lịch làm việc nội bộ, được xây dựng bằng **Angular** và thư viện UI **PrimeNG**. Hệ thống cung cấp các phân hệ dành riêng cho ban giám đốc, phòng nhân sự (HR) và các nhân viên thuộc nhiều phòng ban khác nhau.
 
