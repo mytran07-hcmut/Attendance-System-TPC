@@ -2,8 +2,13 @@
 <div class="grid">
     <div class="col-12">
         <div class="card mb-4 border-2 border-primary border-round-xl">
-            <h4 class="text-primary"><i class="pi pi-calendar-clock mr-2"></i>Quản lý lịch làm việc phòng ban ({{department}})</h4>
-            
+            <div class="flex justify-content-between align-items-center mb-2">
+                <h4 class="text-primary m-0"><i class="pi pi-calendar-clock mr-2"></i>Quản lý lịch làm việc phòng ban
+                    ({{department}})</h4>
+                <div *ngIf="pendingRequest" class="text-lg font-bold text-700 bg-gray-100 px-3 py-2 border-round">
+                    <i class="pi pi-calendar mr-2"></i>Lịch tháng {{pendingRequest.month}}/{{pendingRequest.year}}
+                </div>
+            </div>
             <div *ngIf="!pendingRequest" class="flex flex-column align-items-center p-5 text-center">
                 <i class="pi pi-check-circle text-green-500 text-6xl mb-3"></i>
                 <h5 class="text-700">Hiện tại không có yêu cầu điền lịch nào từ HR.</h5>
@@ -13,38 +18,128 @@
                 <div class="flex justify-content-between align-items-center mb-4">
                     <div class="text-lg font-medium text-700">
                         <span class="mr-2">Trạng thái:</span>
-                        <p-tag *ngIf="pendingRequest.status === 'PENDING_HEAD'" value="Cần điền lịch" severity="danger"></p-tag>
-                        <p-tag *ngIf="pendingRequest.status === 'PENDING_HR'" value="Chờ HR duyệt" severity="warning"></p-tag>
+                        <p-tag *ngIf="pendingRequest.status === 'PENDING_HEAD'" value="Cần điền lịch"
+                            severity="danger"></p-tag>
+                        <p-tag *ngIf="pendingRequest.status === 'PENDING_HR'" value="Chờ HR duyệt"
+                            severity="warning"></p-tag>
                         <p-tag *ngIf="pendingRequest.status === 'APPROVED'" value="Đã duyệt" severity="success"></p-tag>
                     </div>
-                    <button pButton pRipple *ngIf="pendingRequest.status === 'PENDING_HEAD'" 
-                            label="Gửi HR duyệt" icon="pi pi-send" 
-                            class="p-button-success border-round-xl px-4 font-bold" 
-                            (click)="submitSchedule()"></button>
+                    <button pButton pRipple *ngIf="pendingRequest.status === 'PENDING_HEAD'" label="Gửi HR duyệt"
+                        icon="pi pi-send" class="p-button-primary border-round-xl px-4 font-bold"
+                        (click)="submitSchedule()"></button>
                 </div>
 
-                <div class="grid calendar-grid p-2">
-                    <div class="col-12 flex bg-gray-50 border-round font-bold text-700 p-2 mb-2">
-                        <div class="flex-1 text-center" *ngFor="let day of weekDays">{{day}}</div>
-                    </div>
-                    
-                    <div class="col-12 flex flex-wrap" *ngIf="schedule.length > 0">
-                        <div class="calendar-cell p-2 flex flex-column border-1 border-gray-200 border-round m-1" 
-                             style="width: calc(14.28% - 0.5rem); min-height: 80px;"
-                             [ngClass]="{'cursor-pointer hover:shadow-2 transition-duration-150': pendingRequest.status === 'PENDING_HEAD' && day.date}"
-                             *ngFor="let day of schedule"
-                             (click)="toggleDay(day)">
-                            
-                            <div class="text-right font-medium text-600 mb-2">{{day.date}}</div>
-                            
-                            <div *ngIf="day.date" class="mt-auto w-full text-center p-1 border-round text-sm font-bold"
-                                 [ngStyle]="{'background-color': day.type === 'HC' ? '#f4cccc' : (day.type === 'WFH' ? '#ffe5b4' : (day.type === 'OFF' ? '#d9d2e9' : '#fff'))}">
-                                {{day.type}}
+                <div class="flex flex-column gap-3 mb-4" *ngIf="pendingRequest.status === 'PENDING_HEAD'">
+                    <span class="font-medium text-700">Chọn phương thức điền lịch:</span>
+                    <p-selectButton [options]="fillOptions" [(ngModel)]="fillMode" optionLabel="label"
+                        optionValue="value"></p-selectButton>
+                </div>
+
+                <!-- UNIFORM MODE -->
+                <ng-container *ngIf="fillMode === 'uniform'">
+                    <div class="grid calendar-grid p-2">
+                        <div class="col-12 flex bg-gray-50 border-round font-bold text-700 p-2 mb-2">
+                            <div class="flex-1 text-center" *ngFor="let day of weekDays">{{day}}</div>
+                        </div>
+
+                        <div class="col-12 flex flex-wrap" *ngIf="schedule.length > 0">
+                            <div class="calendar-cell p-2 flex flex-column border-1 border-gray-200 border-round m-1"
+                                style="width: calc(14.28% - 0.5rem); min-height: 80px;"
+                                [ngClass]="{'cursor-pointer hover:shadow-2 transition-duration-150': pendingRequest.status === 'PENDING_HEAD' && day.date}"
+                                *ngFor="let day of schedule; let i = index" (click)="toggleDay(day)">
+
+                                <div class="text-right font-medium text-600 mb-2">{{day.date}}</div>
+
+                                <div *ngIf="day.date"
+                                    class="mt-auto w-full text-center p-1 border-round text-sm font-bold relative group"
+                                    [ngStyle]="{'background-color': day.type === 'HC' ? '#f4cccc' : (day.type === 'WFH' ? '#ffe5b4' : (day.type === 'OFF' ? '#d9d2e9' : '#fff'))}">
+                                    {{day.type}}
+                                    <i *ngIf="pendingRequest.status === 'PENDING_HEAD' && day.type !== ''" 
+                                       class="pi pi-clone absolute" 
+                                       style="right: 4px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #6b7280; font-size: 0.85rem;"
+                                       pTooltip="Áp dụng cho tất cả ngày {{weekDays[(i % 7)]}}" 
+                                       tooltipPosition="top"
+                                       (click)="applyToAllWeekdays(day, schedule, $event)"></i>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-                
+                </ng-container>
+
+                <!-- INDIVIDUAL MODE -->
+                <ng-container *ngIf="fillMode === 'individual'">
+                    <div *ngIf="!selectedEmployeeForSchedule">
+                        <h5 class="text-700">Chọn nhân viên để điền lịch</h5>
+                        <p-table [value]="departmentEmployees" responsiveLayout="scroll"
+                            styleClass="p-datatable-sm employee-table">
+                            <ng-template pTemplate="header">
+                                <tr>
+                                    <th style="vertical-align: middle;">Mã NV</th>
+                                    <th>Họ tên</th>
+                                    <th class="text-center" style="vertical-align: middle;">Chức vụ</th>
+                                </tr>
+                            </ng-template>
+                            <ng-template pTemplate="body" let-emp>
+                                <tr (click)="selectEmployee(emp)">
+                                    <td class="font-semibold">
+                                        <div class="td-content">{{ emp.code }}</div>
+                                    </td>
+                                    <td>
+                                        <div class="td-content">
+                                            <span class="font-medium text-900">{{ emp.fullName }}</span>
+                                        </div>
+                                        <div class="add-schedule-overlay">
+                                            <button pButton pRipple icon="pi pi-calendar-plus" label="Xem/Điền lịch"
+                                                class="p-button-rounded p-button-primary shadow-4 px-4 font-bold"></button>
+                                        </div>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="td-content">{{ emp.title }}</div>
+                                    </td>
+                                </tr>
+                            </ng-template>
+                        </p-table>
+                    </div>
+
+                    <div *ngIf="selectedEmployeeForSchedule">
+                        <div class="flex align-items-center mb-3">
+                            <button pButton pRipple icon="pi pi-arrow-left"
+                                class="p-button-text p-button-secondary mr-3" (click)="backToEmployeeList()"></button>
+                            <h5 class="m-0 text-primary">Lịch làm việc của {{selectedEmployeeForSchedule.fullName}}</h5>
+                        </div>
+
+                        <div class="grid calendar-grid p-2">
+                            <div class="col-12 flex bg-gray-50 border-round font-bold text-700 p-2 mb-2">
+                                <div class="flex-1 text-center" *ngFor="let day of weekDays">{{day}}</div>
+                            </div>
+
+                            <div class="col-12 flex flex-wrap"
+                                *ngIf="employeeSchedules[selectedEmployeeForSchedule.email]?.length > 0">
+                                <div class="calendar-cell p-2 flex flex-column border-1 border-gray-200 border-round m-1"
+                                    style="width: calc(14.28% - 0.5rem); min-height: 80px;"
+                                    [ngClass]="{'cursor-pointer hover:shadow-2 transition-duration-150': pendingRequest.status === 'PENDING_HEAD' && day.date}"
+                                    *ngFor="let day of employeeSchedules[selectedEmployeeForSchedule.email]; let i = index"
+                                    (click)="toggleDay(day)">
+
+                                    <div class="text-right font-medium text-600 mb-2">{{day.date}}</div>
+
+                                    <div *ngIf="day.date"
+                                        class="mt-auto w-full text-center p-1 border-round text-sm font-bold relative group"
+                                        [ngStyle]="{'background-color': day.type === 'HC' ? '#f4cccc' : (day.type === 'WFH' ? '#ffe5b4' : (day.type === 'OFF' ? '#d9d2e9' : '#fff'))}">
+                                        {{day.type}}
+                                        <i *ngIf="pendingRequest.status === 'PENDING_HEAD' && day.type !== ''" 
+                                           class="pi pi-clone absolute" 
+                                           style="right: 4px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #6b7280; font-size: 0.85rem;"
+                                           pTooltip="Áp dụng cho tất cả ngày {{weekDays[(i % 7)]}}" 
+                                           tooltipPosition="top"
+                                           (click)="applyToAllWeekdays(day, employeeSchedules[selectedEmployeeForSchedule.email], $event)"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </ng-container>
+
                 <div class="flex gap-4 mt-4 bg-gray-50 p-3 border-round">
                     <div class="flex align-items-center gap-2">
                         <div class="w-2rem h-1rem border-round" style="background-color: #f4cccc"></div>

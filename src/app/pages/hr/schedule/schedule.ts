@@ -18,7 +18,7 @@ import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
-import { DatabaseService, Employee } from '../../../core/services/database.service';
+import { DatabaseService, Employee, DepartmentRequest, DepartmentScheduleData } from '../../../core/services/database.service';
 
 @Component({
   selector: 'app-hr-schedule',
@@ -96,6 +96,10 @@ export class Schedule implements OnInit {
 
   employees: Employee[] = [];
   selectedEmployee: any;
+
+  currentDeptRequest: DepartmentRequest | null = null;
+  deptScheduleData: DepartmentScheduleData | null = null;
+  departmentEmployees: Employee[] = [];
 
   // Calendar setup
   currentMonth = new Date();
@@ -224,10 +228,41 @@ export class Schedule implements OnInit {
   onScopeChange(event: any) {
     if (this.selectedScope?.code === 'EMP') {
       this.viewState = 'employeeList';
+      this.currentDeptRequest = null;
+      this.deptScheduleData = null;
     } else {
       this.viewState = 'calendar';
+      if (this.selectedScope?.code !== 'ALL' && this.selectedScope?.code !== 'EMP') {
+         const deptName = this.selectedScope.label;
+         this.currentDeptRequest = this.db.getDepartmentRequestSync(deptName);
+         if (this.currentDeptRequest) {
+             this.deptScheduleData = this.db.getDepartmentScheduleSync(deptName);
+         } else {
+             this.deptScheduleData = null;
+         }
+         this.departmentEmployees = this.employees.filter(e => e.department === deptName);
+      } else {
+         this.currentDeptRequest = null;
+         this.deptScheduleData = null;
+      }
       this.generateCalendar();
     }
+  }
+
+  approveSchedule() {
+     if (this.currentDeptRequest) {
+         this.db.updateDepartmentRequest(this.currentDeptRequest.department, 'APPROVED');
+         this.currentDeptRequest.status = 'APPROVED';
+         this.messageService.add({ severity: 'success', summary: 'Thành công', detail: 'Đã duyệt và đăng lịch cho phòng ' + this.currentDeptRequest.department });
+     }
+  }
+
+  rejectSchedule() {
+     if (this.currentDeptRequest) {
+         this.db.updateDepartmentRequest(this.currentDeptRequest.department, 'PENDING_HEAD');
+         this.currentDeptRequest.status = 'PENDING_HEAD';
+         this.messageService.add({ severity: 'info', summary: 'Đã từ chối', detail: 'Đã yêu cầu Trưởng phòng ' + this.currentDeptRequest.department + ' điền lại lịch' });
+     }
   }
 
   selectEmployeeForCalendar(emp: Employee) {
@@ -243,7 +278,11 @@ export class Schedule implements OnInit {
 
   saveEmployeeCalendar() {
     this.messageService.add({ severity: 'success', summary: 'Thành công', detail: 'Đã cập nhật lịch làm việc cho ' + this.selectedEmployee.fullName });
-    this.viewState = 'employeeList';
+    if (this.deptScheduleData && !this.deptScheduleData.isUniform) {
+       this.viewState = 'calendar';
+    } else {
+       this.viewState = 'employeeList';
+    }
   }
 
   next() {
@@ -268,7 +307,7 @@ export class Schedule implements OnInit {
       this.messageService.add({ severity: 'success', summary: 'Thành công', detail: 'Đã tạo và đăng lịch làm việc toàn công ty!' });
     } else if (this.selectedOption === 2) {
       if (this.selectedDepartment && this.selectedDepartment.name) {
-        this.db.updateDepartmentRequest(this.selectedDepartment.name, 'PENDING_HEAD');
+        this.db.updateDepartmentRequest(this.selectedDepartment.name, 'PENDING_HEAD', this.currentMonth.getMonth() + 1, this.currentMonth.getFullYear());
         this.messageService.add({ severity: 'info', summary: 'Thông báo', detail: `Đã gửi yêu cầu điền lịch tới Trưởng phòng ${this.selectedDepartment.name}` });
       }
     } else {
@@ -294,6 +333,20 @@ export class Schedule implements OnInit {
     let startOffset = firstDay === 0 ? 6 : firstDay - 1;
 
     this.monthDays = [];
+
+    // If viewing a department that has a uniform schedule, we can load it here
+    if (this.deptScheduleData && this.deptScheduleData.isUniform && this.deptScheduleData.schedule) {
+        this.monthDays = this.deptScheduleData.schedule;
+        return;
+    }
+
+    // If viewing an employee calendar and the manager filled it individually
+    if (this.viewState === 'employeeCalendar' && this.deptScheduleData && !this.deptScheduleData.isUniform && this.selectedEmployee) {
+        if (this.deptScheduleData.employeeSchedules && this.deptScheduleData.employeeSchedules[this.selectedEmployee.email]) {
+            this.monthDays = this.deptScheduleData.employeeSchedules[this.selectedEmployee.email];
+            return;
+        }
+    }
 
     // Empty slots
     for (let i = 0; i < startOffset; i++) {
