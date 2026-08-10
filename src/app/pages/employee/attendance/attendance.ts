@@ -61,7 +61,14 @@ export class Attendance implements OnInit {
     if (me) {
         const req = this.db.getDepartmentRequestSync(me.department);
         if (req && req.status === 'APPROVED') {
-            baseSchedule = this.db.getDepartmentScheduleSync(me.department);
+            const deptSchedule = this.db.getDepartmentScheduleSync(me.department);
+            if (deptSchedule) {
+                if (deptSchedule.isUniform && deptSchedule.schedule) {
+                    baseSchedule = deptSchedule.schedule;
+                } else if (!deptSchedule.isUniform && deptSchedule.employeeSchedules && deptSchedule.employeeSchedules[userEmail]) {
+                    baseSchedule = deptSchedule.employeeSchedules[userEmail];
+                }
+            }
         }
     }
     

@@ -11,11 +11,13 @@ import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
-import { DatabaseService, DepartmentRequest } from '../../../core/services/database.service';
+import { DatabaseService, DepartmentRequest, DepartmentScheduleData, Employee, ScheduleDay } from '../../../core/services/database.service';
+import { SelectModule } from 'primeng/select';
+import { FormsModule } from '@angular/forms';
 @Component({
   selector: 'app-hr-dashboard',
   standalone: true,
-  imports: [CommonModule, TableModule, ButtonModule, TagModule, DialogModule, RouterModule, TooltipModule, InputTextModule, IconFieldModule, InputIconModule, ToastModule],
+  imports: [CommonModule, TableModule, ButtonModule, TagModule, DialogModule, RouterModule, TooltipModule, InputTextModule, IconFieldModule, InputIconModule, ToastModule, SelectModule, FormsModule],
   providers: [MessageService],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss'
@@ -42,6 +44,16 @@ export class Dashboard {
   displayPresentDialog: boolean = false;
   displayAbsentDialog: boolean = false;
 
+  displayPreviewDialog: boolean = false;
+  displayApproveConfirmDialog: boolean = false;
+  previewScheduleData: DepartmentScheduleData | null = null;
+  previewEmployees: Employee[] = [];
+  selectedPreviewEmployee: Employee | null = null;
+  previewMonthDays: ScheduleDay[] = [];
+  previewMonth: number = 1;
+  previewYear: number = 2026;
+  previewReq: DepartmentRequest | null = null;
+
   constructor(private db: DatabaseService, private messageService: MessageService) {
     this.db.deptRequests$.subscribe(requests => {
       this.departmentScheduleRequests = Object.values(requests).filter(req => req.status === 'PENDING_HR');
@@ -52,8 +64,88 @@ export class Dashboard {
   }
 
   approveDepartmentSchedule(req: DepartmentRequest) {
-    this.db.updateDepartmentRequest(req.department, 'APPROVED');
+    this.db.updateDepartmentRequest(req.department, 'APPROVED', req.month, req.year);
     this.messageService.add({ severity: 'success', summary: 'Thành công', detail: `Đã duyệt lịch cho ${req.department}` });
+  }
+
+  rejectDepartmentSchedule(req: DepartmentRequest) {
+    this.db.updateDepartmentRequest(req.department, 'PENDING_HEAD', req.month, req.year);
+    this.messageService.add({ severity: 'info', summary: 'Đã từ chối', detail: `Yêu cầu trưởng phòng ${req.department} điền lại lịch` });
+  }
+
+  onApproveClick() {
+    if (this.previewScheduleData && this.previewScheduleData.isUniform) {
+       this.approveDepartmentSchedule(this.previewReq!);
+       this.displayPreviewDialog = false;
+    } else {
+       this.displayApproveConfirmDialog = true;
+    }
+  }
+
+  approveAllEmployees() {
+    this.approveDepartmentSchedule(this.previewReq!);
+    this.displayApproveConfirmDialog = false;
+    this.displayPreviewDialog = false;
+  }
+
+  approveSingleEmployee() {
+    if (!this.previewReq || !this.selectedPreviewEmployee) return;
+
+    const remaining = this.db.approveEmployeeSchedule(this.previewReq.department, this.selectedPreviewEmployee.email);
+    if (remaining > 0) {
+      this.messageService.add({ severity: 'success', summary: 'Thành công', detail: `Đã duyệt lịch cho ${this.selectedPreviewEmployee.fullName}. Còn ${remaining} nhân viên chưa duyệt.` });
+    } else {
+      this.messageService.add({ severity: 'success', summary: 'Hoàn tất', detail: `Đã duyệt lịch cho toàn bộ phòng ${this.previewReq.department}.` });
+      this.displayPreviewDialog = false;
+    }
+    
+    // Update local preview request state to re-render "(Đã duyệt)" badge
+    if (!this.previewReq.approvedEmployees) {
+        this.previewReq.approvedEmployees = [];
+    }
+    if (!this.previewReq.approvedEmployees.includes(this.selectedPreviewEmployee.email)) {
+        this.previewReq.approvedEmployees.push(this.selectedPreviewEmployee.email);
+    }
+    
+    this.displayApproveConfirmDialog = false;
+  }
+
+  getScheduleType(department: string): string {
+    const data = this.db.getDepartmentScheduleSync(department);
+    if (!data) return 'Chưa xác định';
+    return data.isUniform ? 'Chung toàn phòng' : 'Riêng từng nhân viên';
+  }
+
+  previewDepartmentSchedule(req: DepartmentRequest) {
+    this.previewReq = req;
+    this.previewScheduleData = this.db.getDepartmentScheduleSync(req.department);
+    this.previewMonth = req.month || new Date().getMonth() + 1;
+    this.previewYear = req.year || new Date().getFullYear();
+    
+    if (this.previewScheduleData) {
+      if (this.previewScheduleData.isUniform && this.previewScheduleData.schedule) {
+        this.previewMonthDays = this.previewScheduleData.schedule;
+      } else {
+        this.previewEmployees = this.db.getEmployeesSync().filter(e => e.department === req.department);
+        if (this.previewEmployees.length > 0) {
+          this.selectedPreviewEmployee = this.previewEmployees[0];
+          this.onPreviewEmployeeChange();
+        } else {
+           this.previewMonthDays = [];
+        }
+      }
+      this.displayPreviewDialog = true;
+    } else {
+      this.messageService.add({ severity: 'error', summary: 'Lỗi', detail: 'Không tìm thấy dữ liệu lịch' });
+    }
+  }
+
+  onPreviewEmployeeChange() {
+    if (this.selectedPreviewEmployee && this.previewScheduleData?.employeeSchedules) {
+      this.previewMonthDays = this.previewScheduleData.employeeSchedules[this.selectedPreviewEmployee.email] || [];
+    } else {
+      this.previewMonthDays = [];
+    }
   }
 
   formatDateRange(dates: string[]): string {
