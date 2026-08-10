@@ -86,14 +86,15 @@
     </div>
 
     <!-- Empty State -->
-    <div *ngIf="!isSchedulePublished" class="flex flex-column align-items-center justify-content-center py-8 bg-surface-50 border-round">
+    <div *ngIf="!isSchedulePublished || !hasSchedule" class="flex flex-column align-items-center justify-content-center py-8 bg-surface-50 border-round">
         <i class="pi pi-calendar-times text-500 mb-4" style="font-size: 4rem;"></i>
-        <h4 class="text-700 font-medium m-0 text-center">Lịch làm việc tháng {{ currentViewMonth | date:'MM/yyyy' }} chưa được phòng Nhân sự phân bổ.</h4>
+        <h4 class="text-700 font-medium m-0 text-center" *ngIf="!isSchedulePublished">Lịch làm việc tháng {{ currentViewMonth | date:'MM/yyyy' }} chưa được phòng Nhân sự phân bổ.</h4>
+        <h4 class="text-700 font-medium m-0 text-center" *ngIf="isSchedulePublished && !hasSchedule">Lịch làm việc tháng {{ currentViewMonth | date:'MM/yyyy' }} chưa được Trưởng phòng lên lịch hoặc duyệt.</h4>
         <p class="text-500 mt-2">Vui lòng quay lại sau hoặc liên hệ HR để biết thêm chi tiết.</p>
     </div>
 
     <!-- Calendar Grid -->
-    <div *ngIf="isSchedulePublished" class="w-full border-round overflow-hidden" style="border: 1px solid var(--surface-d)">
+    <div *ngIf="isSchedulePublished && hasSchedule" class="w-full border-round overflow-hidden" style="border: 1px solid var(--surface-d)">
         <div class="flex bg-primary text-white p-3">
             <div class="flex-1 text-center font-bold" *ngFor="let day of weekDays">{{day}}</div>
         </div>

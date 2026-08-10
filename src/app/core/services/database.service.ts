@@ -49,6 +49,21 @@ export interface LeaveRequest {
   requestDate: string;
 }
 
+export interface ScheduleSymbol {
+  code: string;
+  name: string;
+  color: string;
+  description: string;
+}
+
+const DEFAULT_SYMBOLS: ScheduleSymbol[] = [
+  { code: 'HC', name: 'Hành chính (Đi làm đủ)', color: '#f4cccc', description: 'Áp dụng khi nhân viên đến văn phòng/nhà máy làm việc và check-in đủ ca tiêu chuẩn (thường là 8 tiếng).' },
+  { code: 'AL', name: 'Nghỉ phép năm', color: '#d9ead3', description: 'Áp dụng khi nhân viên chủ động xin nghỉ giải quyết việc riêng, đi du lịch... và số ngày nghỉ được trừ trực tiếp vào Quỹ phép năm còn lại của họ.' },
+  { code: 'KP', name: 'Nghỉ không phép', color: '#c9daf8', description: 'Áp dụng khi nhân viên tự ý bỏ việc không thông báo, gọi điện không bắt máy. Ký hiệu này dùng làm căn cứ xử lý kỷ luật hoặc trừ điểm chuyên cần.' },
+  { code: 'OFF', name: 'Ngày nghỉ tuần', color: '#d9d2e9', description: 'Áp dụng cho ngày nghỉ mặc định trong tuần (thường là Chủ Nhật), hoặc ngày nghỉ xoay ca linh hoạt của nhân viên khối dịch vụ/cửa hàng.' },
+  { code: 'L', name: 'Nghỉ Lễ, Tết', color: '#fff2cc', description: 'Hệ thống tự động áp dụng cho toàn công ty vào các ngày quốc lễ (Tết Âm/Dương lịch, 30/4, 1/5, Quốc khánh 2/9, Giỗ tổ Hùng Vương).' },
+  { code: 'WFH', name: 'Làm việc tại nhà', color: '#ffe5b4', description: 'Áp dụng khi nhân viên được cho phép làm việc từ xa (Work From Home).' }
+];
 
 @Injectable({
   providedIn: 'root'
@@ -59,14 +74,18 @@ export class DatabaseService {
   private readonly DEPT_SCHEDULES_KEY = 'mock_db_dept_schedules';
   private readonly DEPT_REQUESTS_KEY = 'mock_db_dept_requests';
   private readonly LEAVE_REQUESTS_KEY = 'mock_db_leave_requests';
+  private readonly SYMBOLS_KEY = 'mock_db_symbols';
+  
+  private symbolsSubject = new BehaviorSubject<ScheduleSymbol[]>([]);
+  public symbols$ = this.symbolsSubject.asObservable();
   
   private employeesSubject = new BehaviorSubject<Employee[]>([]);
   public employees$ = this.employeesSubject.asObservable();
 
-  private companyScheduleSubject = new BehaviorSubject<ScheduleDay[]>([]);
+  private companyScheduleSubject = new BehaviorSubject<{ [monthYear: string]: ScheduleDay[] }>({});
   public companySchedule$ = this.companyScheduleSubject.asObservable();
 
-  private deptSchedulesSubject = new BehaviorSubject<{ [dept: string]: DepartmentScheduleData }>({});
+  private deptSchedulesSubject = new BehaviorSubject<{ [dept_monthYear: string]: DepartmentScheduleData }>({});
   public deptSchedules$ = this.deptSchedulesSubject.asObservable();
 
   private deptRequestsSubject = new BehaviorSubject<{ [dept: string]: DepartmentRequest }>({});
@@ -97,12 +116,24 @@ export class DatabaseService {
 
     const storedCompanySchedule = localStorage.getItem(this.COMPANY_SCHEDULE_KEY);
     if (storedCompanySchedule) {
-      this.companyScheduleSubject.next(JSON.parse(storedCompanySchedule));
+      try {
+        const parsed = JSON.parse(storedCompanySchedule);
+        if (Array.isArray(parsed)) {
+            // Legacy data, clear it
+            this.companyScheduleSubject.next({});
+        } else {
+            this.companyScheduleSubject.next(parsed);
+        }
+      } catch (e) { this.companyScheduleSubject.next({}); }
     }
 
     const storedDeptSchedules = localStorage.getItem(this.DEPT_SCHEDULES_KEY);
     if (storedDeptSchedules) {
-      this.deptSchedulesSubject.next(JSON.parse(storedDeptSchedules));
+      try {
+        const parsed = JSON.parse(storedDeptSchedules);
+        // Check if old format by seeing if keys are just department names without year-month
+        this.deptSchedulesSubject.next(parsed);
+      } catch (e) { this.deptSchedulesSubject.next({}); }
     }
 
     const storedDeptRequests = localStorage.getItem(this.DEPT_REQUESTS_KEY);
@@ -126,7 +157,19 @@ export class DatabaseService {
       this.publishedMonthsSubject.next([prevMonthKey, currentMonthKey]);
     }
 
-    // Sync across tabs
+    const storedLeave = localStorage.getItem(this.LEAVE_REQUESTS_KEY);
+    if (storedLeave) {
+      this.leaveRequestsSubject.next(JSON.parse(storedLeave));
+    }
+    
+    const storedSymbols = localStorage.getItem(this.SYMBOLS_KEY);
+    if (storedSymbols) {
+      this.symbolsSubject.next(JSON.parse(storedSymbols));
+    } else {
+      this.symbolsSubject.next([...DEFAULT_SYMBOLS.map(s => ({...s}))]);
+    }
+
+    // Listen to changes from other tabs
     window.addEventListener('storage', (event) => {
       if (event.key === this.EMPLOYEES_KEY && event.newValue) {
         this.employeesSubject.next(JSON.parse(event.newValue));
@@ -143,6 +186,9 @@ export class DatabaseService {
       if (event.key === this.LEAVE_REQUESTS_KEY && event.newValue) {
         this.leaveRequestsSubject.next(JSON.parse(event.newValue));
       }
+      if (event.key === this.SYMBOLS_KEY && event.newValue) {
+        this.symbolsSubject.next(JSON.parse(event.newValue));
+      }
       if (event.key === 'mock_db_published_months' && event.newValue) {
         this.publishedMonthsSubject.next(JSON.parse(event.newValue));
       }
@@ -154,18 +200,24 @@ export class DatabaseService {
     this.employeesSubject.next(employees);
   }
 
-  saveCompanySchedule(schedule: ScheduleDay[]) {
-    localStorage.setItem(this.COMPANY_SCHEDULE_KEY, JSON.stringify(schedule));
-    this.companyScheduleSubject.next(schedule);
-    this.mergeCompanyScheduleToAll(schedule);
+  saveCompanySchedule(year: number, month: number, schedule: ScheduleDay[]) {
+    const key = `${year}-${month}`;
+    const current = this.companyScheduleSubject.getValue();
+    const updated = { ...current, [key]: schedule };
+    localStorage.setItem(this.COMPANY_SCHEDULE_KEY, JSON.stringify(updated));
+    this.companyScheduleSubject.next(updated);
+    this.mergeCompanyScheduleToAll(year, month, schedule);
   }
 
-  private mergeCompanyScheduleToAll(companySchedule: ScheduleDay[]) {
+  private mergeCompanyScheduleToAll(year: number, month: number, companySchedule: ScheduleDay[]) {
+    const monthKeySuffix = `_${year}-${month}`;
     const current = this.deptSchedulesSubject.getValue();
     let hasChanges = false;
     const updated = { ...current };
 
-    for (const [dept, data] of Object.entries(updated)) {
+    for (const [key, data] of Object.entries(updated)) {
+      if (!key.endsWith(monthKeySuffix)) continue;
+      
       if (data.isUniform && data.schedule) {
         data.schedule = data.schedule.map((day, idx) => {
           if (companySchedule[idx] && companySchedule[idx].type === 'L' && day.date === companySchedule[idx].date) {
@@ -207,9 +259,16 @@ export class DatabaseService {
     return this.publishedMonthsSubject.getValue();
   }
 
-  saveDepartmentSchedule(department: string, data: DepartmentScheduleData) {
+  getCompanyScheduleSync(year: number, month: number): ScheduleDay[] {
+    const key = `${year}-${month}`;
+    const current = this.companyScheduleSubject.getValue();
+    return current[key] || [];
+  }
+
+  saveDepartmentSchedule(department: string, year: number, month: number, data: DepartmentScheduleData) {
+    const key = `${department}_${year}-${month}`;
     const current = this.deptSchedulesSubject.getValue();
-    const updated = { ...current, [department]: data };
+    const updated = { ...current, [key]: data };
     localStorage.setItem(this.DEPT_SCHEDULES_KEY, JSON.stringify(updated));
     this.deptSchedulesSubject.next(updated);
   }
@@ -252,13 +311,11 @@ export class DatabaseService {
     return 0;
   }
 
-  getCompanyScheduleSync(): ScheduleDay[] {
-    return this.companyScheduleSubject.getValue();
-  }
 
-  getDepartmentScheduleSync(department: string): DepartmentScheduleData | null {
+  getDepartmentScheduleSync(department: string, year: number, month: number): DepartmentScheduleData | null {
+    const key = `${department}_${year}-${month}`;
     const current = this.deptSchedulesSubject.getValue();
-    return current[department] || null;
+    return current[key] || null;
   }
 
   getDepartmentRequestSync(department: string): DepartmentRequest | null {
@@ -279,6 +336,22 @@ export class DatabaseService {
   
   getLeaveRequestsByEmployeeSync(email: string): LeaveRequest[] {
     return this.getLeaveRequestsSync().filter(r => r.employeeEmail === email);
+  }
+  
+  // --- Symbol Methods ---
+  
+  getSymbolsSync(): ScheduleSymbol[] {
+    return this.symbolsSubject.getValue();
+  }
+  
+  saveSymbols(symbols: ScheduleSymbol[]) {
+    localStorage.setItem(this.SYMBOLS_KEY, JSON.stringify(symbols));
+    this.symbolsSubject.next(symbols);
+  }
+  
+  getSymbolColor(code: string): string {
+    const symbol = this.getSymbolsSync().find(s => s.code === code);
+    return symbol ? symbol.color : '#e0e0e0';
   }
   
   addLeaveRequest(request: Omit<LeaveRequest, 'id'>) {

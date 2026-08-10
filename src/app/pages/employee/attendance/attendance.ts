@@ -26,6 +26,7 @@ export class Attendance implements OnInit {
   isLeaveSubmitted: boolean = false;
   showSuccessAnimation: boolean = false;
   isSchedulePublished: boolean = true;
+  hasSchedule: boolean = true;
   firstCheckInTime: string | null = null;
   
   weekDays = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
@@ -61,7 +62,7 @@ export class Attendance implements OnInit {
     if (me) {
         const req = this.db.getDepartmentRequestSync(me.department);
         if (req && req.status === 'APPROVED') {
-            const deptSchedule = this.db.getDepartmentScheduleSync(me.department);
+            const deptSchedule = this.db.getDepartmentScheduleSync(me.department, year, month + 1);
             if (deptSchedule) {
                 if (deptSchedule.isUniform && deptSchedule.schedule) {
                     baseSchedule = deptSchedule.schedule;
@@ -73,52 +74,32 @@ export class Attendance implements OnInit {
     }
     
     if (!baseSchedule || baseSchedule.length === 0) {
-        baseSchedule = this.db.getCompanyScheduleSync();
+        baseSchedule = this.db.getCompanyScheduleSync(year, month + 1);
     }
     
-    // Fallback if no schedule in DB
-    if (!baseSchedule || baseSchedule.length === 0) {
-        baseSchedule = [];
-        const year = this.currentViewMonth.getFullYear();
-        const month = this.currentViewMonth.getMonth();
-        const firstDay = new Date(year, month, 1).getDay();
-        const daysInMonth = new Date(year, month + 1, 0).getDate();
-        let startOffset = firstDay === 0 ? 6 : firstDay - 1;
-        
-        for (let i = 0; i < startOffset; i++) {
-            baseSchedule.push({ date: null, type: '' });
-        }
-        for (let i = 1; i <= daysInMonth; i++) {
-            let currentDayOfWeek = (startOffset + i - 1) % 7;
-            let isWeekend = currentDayOfWeek === 5 || currentDayOfWeek === 6;
-            baseSchedule.push({ date: i, type: isWeekend ? 'OFF' : 'HC' });
-        }
-    }
-
-    baseSchedule.forEach(cell => {
-        if (!cell.date) {
-            this.employeeSchedule.push({ ...cell, isWeekend: false });
+        if (!baseSchedule || baseSchedule.length === 0) {
+            this.hasSchedule = false;
             return;
+        } else {
+            this.hasSchedule = true;
         }
 
-        let isToday = cell.date === this.today.getDate() && 
-                      this.currentViewMonth.getMonth() === this.today.getMonth() && 
-                      this.currentViewMonth.getFullYear() === this.today.getFullYear();
-        let isPast = (this.currentViewMonth.getFullYear() < this.today.getFullYear()) || 
-                     (this.currentViewMonth.getFullYear() === this.today.getFullYear() && this.currentViewMonth.getMonth() < this.today.getMonth()) || 
-                     (this.currentViewMonth.getFullYear() === this.today.getFullYear() && this.currentViewMonth.getMonth() === this.today.getMonth() && cell.date < this.today.getDate());
-        
-        let checkIn = null;
-        let checkOut = null;
-        let totalHours = null;
-        if (isPast && cell.type === 'HC') {
-            const inMin = Math.floor(Math.random() * 30).toString().padStart(2, '0');
-            checkIn = `08:${inMin}`;
-            const outHour = Math.floor(Math.random() * 2) + 17;
-            const outMin = Math.floor(Math.random() * 60).toString().padStart(2, '0');
-            checkOut = `${outHour}:${outMin}`;
-            totalHours = this.calculateTotalHours(checkIn, checkOut);
-        }
+        baseSchedule.forEach(cell => {
+            if (!cell.date) {
+                this.employeeSchedule.push({ ...cell, isWeekend: false });
+                return;
+            }
+
+            let isToday = cell.date === this.today.getDate() && 
+                          this.currentViewMonth.getMonth() === this.today.getMonth() && 
+                          this.currentViewMonth.getFullYear() === this.today.getFullYear();
+            let isPast = (this.currentViewMonth.getFullYear() < this.today.getFullYear()) || 
+                         (this.currentViewMonth.getFullYear() === this.today.getFullYear() && this.currentViewMonth.getMonth() < this.today.getMonth()) || 
+                         (this.currentViewMonth.getFullYear() === this.today.getFullYear() && this.currentViewMonth.getMonth() === this.today.getMonth() && cell.date < this.today.getDate());
+            
+            let checkIn = null;
+            let checkOut = null;
+            let totalHours = null;
 
         this.employeeSchedule.push({
             ...cell,
@@ -209,15 +190,7 @@ export class Attendance implements OnInit {
   }
 
   getSymbolColor(type: string): string {
-    switch (type) {
-      case 'HC': return '#f4cccc';
-      case 'OFF': return '#d9d2e9';
-      case 'AL': return '#d9ead3';
-      case 'KP': return '#c9daf8';
-      case 'L': return '#fff2cc';
-      case 'WFH': return '#ffe5b4';
-      default: return '#ffffff';
-    }
+    return this.db.getSymbolColor(type);
   }
 
   confirmAttendance() {

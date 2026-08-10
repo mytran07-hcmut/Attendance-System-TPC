@@ -18,7 +18,7 @@ import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
-import { DatabaseService, Employee, DepartmentRequest, DepartmentScheduleData } from '../../../core/services/database.service';
+import { DatabaseService, Employee, DepartmentRequest, DepartmentScheduleData, ScheduleDay, ScheduleSymbol } from '../../../core/services/database.service';
 
 @Component({
   selector: 'app-hr-schedule',
@@ -39,14 +39,7 @@ export class Schedule implements OnInit {
   isScheduleCreated: boolean = true;
   isEditMode: boolean = false;
   totalEmployeeWorkDays: number = 0;
-  availableSymbols = [
-    { code: 'HC', name: 'Hành chính', color: '#f4cccc' },
-    { code: 'AL', name: 'Nghỉ phép năm', color: '#d9ead3' },
-    { code: 'KP', name: 'Nghỉ không phép', color: '#c9daf8' },
-    { code: 'OFF', name: 'Ngày nghỉ tuần', color: '#d9d2e9' },
-    { code: 'L', name: 'Ngày Lễ', color: '#fff2cc' },
-    { code: 'WFH', name: 'Làm việc tại nhà', color: '#ffe5b4' }
-  ];
+  availableSymbols: ScheduleSymbol[] = [];
   displayEditDialog: boolean = false;
   editingCell: any = null;
   tempSymbol: any = null;
@@ -109,7 +102,7 @@ export class Schedule implements OnInit {
 
   constructor(private messageService: MessageService, private route: ActivatedRoute, private db: DatabaseService) {
     const today = new Date();
-    this.minDate = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+    this.minDate = new Date(today.getFullYear(), today.getMonth(), 1);
     this.generateCalendar();
   }
 
@@ -121,6 +114,9 @@ export class Schedule implements OnInit {
     });
     this.db.employees$.subscribe(data => {
       this.employees = data;
+    });
+    this.db.symbols$.subscribe(data => {
+      this.availableSymbols = data;
     });
   }
 
@@ -185,14 +181,15 @@ export class Schedule implements OnInit {
       }
       if (this.viewState === 'employeeCalendar') {
         this.calculateTotalWorkDays();
+      } else if (this.viewState === 'calendar' && this.selectedScope?.code === 'ALL') {
+        this.db.saveCompanySchedule(this.currentMonth.getFullYear(), this.currentMonth.getMonth() + 1, this.monthDays);
       }
     }
     this.displayEditDialog = false;
   }
 
   getSymbolColor(code: string): string {
-    const symbol = this.availableSymbols.find(s => s.code === code);
-    return symbol ? symbol.color : '#fff3cd';
+    return this.db.getSymbolColor(code);
   }
 
   openWizard() {
@@ -200,9 +197,9 @@ export class Schedule implements OnInit {
     this.activeIndex = 0;
     this.selectedOption = 1;
     
-    // Set to next month when opening wizard to create new schedule
+    // Set to current month when opening wizard to create new schedule
     const today = new Date();
-    this.currentMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+    this.currentMonth = new Date(today.getFullYear(), today.getMonth(), 1);
     this.generateCalendar();
   }
 
@@ -214,10 +211,17 @@ export class Schedule implements OnInit {
   }
 
   checkScheduleCreated() {
-    const today = new Date();
-    const isFutureMonth = this.currentMonth.getFullYear() > today.getFullYear() || 
-                          (this.currentMonth.getFullYear() === today.getFullYear() && this.currentMonth.getMonth() > today.getMonth());
-    this.isScheduleCreated = !isFutureMonth;
+    const key = `${this.currentMonth.getFullYear()}-${this.currentMonth.getMonth() + 1}`;
+    const published = this.db.getPublishedMonthsSync();
+    
+    if (published.includes(key)) {
+        this.isScheduleCreated = true;
+    } else {
+        const today = new Date();
+        const isFutureMonth = this.currentMonth.getFullYear() > today.getFullYear() || 
+                              (this.currentMonth.getFullYear() === today.getFullYear() && this.currentMonth.getMonth() > today.getMonth());
+        this.isScheduleCreated = !isFutureMonth;
+    }
   }
 
   onMonthSelect() {
@@ -236,7 +240,7 @@ export class Schedule implements OnInit {
          const deptName = this.selectedScope.label;
          this.currentDeptRequest = this.db.getDepartmentRequestSync(deptName);
          if (this.currentDeptRequest) {
-             this.deptScheduleData = this.db.getDepartmentScheduleSync(deptName);
+             this.deptScheduleData = this.db.getDepartmentScheduleSync(deptName, this.currentMonth.getFullYear(), this.currentMonth.getMonth() + 1);
          } else {
              this.deptScheduleData = null;
          }
@@ -268,6 +272,8 @@ export class Schedule implements OnInit {
   selectEmployeeForCalendar(emp: Employee) {
     this.selectedEmployee = emp;
     this.viewState = 'employeeCalendar';
+    this.currentDeptRequest = this.db.getDepartmentRequestSync(emp.department);
+    this.deptScheduleData = this.db.getDepartmentScheduleSync(emp.department, this.currentMonth.getFullYear(), this.currentMonth.getMonth() + 1);
     this.generateCalendar();
     this.calculateTotalWorkDays();
   }
@@ -302,7 +308,7 @@ export class Schedule implements OnInit {
 
   publish() {
     if (this.selectedOption === 1) {
-      this.db.saveCompanySchedule(this.monthDays);
+      this.db.saveCompanySchedule(this.currentMonth.getFullYear(), this.currentMonth.getMonth() + 1, this.monthDays);
       this.db.publishMonth(this.currentMonth.getFullYear(), this.currentMonth.getMonth());
       this.messageService.add({ severity: 'success', summary: 'Thành công', detail: 'Đã tạo và đăng lịch làm việc toàn công ty!' });
     } else if (this.selectedOption === 2) {
@@ -348,6 +354,11 @@ export class Schedule implements OnInit {
         }
     }
 
+    let companySched: ScheduleDay[] = [];
+    if (this.isScheduleCreated) {
+        companySched = this.db.getCompanyScheduleSync(year, month + 1) || [];
+    }
+
     // Empty slots
     for (let i = 0; i < startOffset; i++) {
       this.monthDays.push({ date: null, type: '' });
@@ -358,10 +369,16 @@ export class Schedule implements OnInit {
       const date = new Date(year, month, i);
       const isWeekend = date.getDay() === 0 || date.getDay() === 6;
       let type = isWeekend ? 'OFF' : 'HC';
+      let holidayName = '';
 
-      // Specific overrides if needed
-      if (this.selectedOption === 2 && !isWeekend) type = '?'; // Wait for manager
-      if (this.selectedOption === 3 && !isWeekend) type = '?'; // Wait for employee
+      if (companySched.length > 0 && companySched[startOffset + i - 1]) {
+          type = companySched[startOffset + i - 1].type;
+          holidayName = companySched[startOffset + i - 1].holidayName || '';
+      } else {
+          // Specific overrides if needed
+          if (this.selectedOption === 2 && !isWeekend) type = '?'; // Wait for manager
+          if (this.selectedOption === 3 && !isWeekend) type = '?'; // Wait for employee
+      }
       
       let absentCount = 0;
       let lateCount = 0;
@@ -385,6 +402,7 @@ export class Schedule implements OnInit {
       this.monthDays.push({
         date: i,
         type: type,
+        holidayName: holidayName,
         isWeekend: isWeekend,
         isPast: isPast,
         isToday: isToday,

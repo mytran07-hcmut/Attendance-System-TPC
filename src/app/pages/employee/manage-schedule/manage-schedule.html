@@ -52,7 +52,7 @@
 
                                 <div *ngIf="day.date"
                                     class="mt-auto w-full text-center p-1 border-round text-sm font-bold relative group"
-                                    [ngStyle]="{'background-color': day.type === 'HC' ? '#f4cccc' : (day.type === 'WFH' ? '#ffe5b4' : (day.type === 'OFF' ? '#d9d2e9' : '#fff'))}">
+                                    [ngStyle]="{'background-color': getSymbolColor(day.type)}">
                                     {{day.type}}
                                     <i *ngIf="pendingRequest.status === 'PENDING_HEAD' && day.type !== ''" 
                                        class="pi pi-clone absolute" 
@@ -125,7 +125,7 @@
 
                                     <div *ngIf="day.date"
                                         class="mt-auto w-full text-center p-1 border-round text-sm font-bold relative group"
-                                        [ngStyle]="{'background-color': day.type === 'HC' ? '#f4cccc' : (day.type === 'WFH' ? '#ffe5b4' : (day.type === 'OFF' ? '#d9d2e9' : '#fff'))}">
+                                        [ngStyle]="{'background-color': getSymbolColor(day.type)}">
                                         {{day.type}}
                                         <i *ngIf="pendingRequest.status === 'PENDING_HEAD' && day.type !== ''" 
                                            class="pi pi-clone absolute" 

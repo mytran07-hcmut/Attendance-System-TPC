@@ -18,11 +18,13 @@
         <div class="flex gap-2">
             <button *ngIf="viewState === 'employeeCalendar'" pButton pRipple label="Quay lại" icon="pi pi-arrow-left"
                 class="p-button-secondary p-button-outlined" (click)="viewState = 'employeeList'"></button>
-            <button *ngIf="viewState === 'calendar' && isScheduleCreated && !isEditMode" pButton pRipple label="Chỉnh sửa" icon="pi pi-pencil" class="p-button-primary p-button-outlined"
+            <button *ngIf="viewState === 'calendar' && !isEditMode" pButton pRipple label="Thêm mới" icon="pi pi-plus" class="p-button-primary"
+                (click)="openWizard()"></button>
+            <button *ngIf="viewState === 'calendar' && isScheduleCreated && !isEditMode" pButton pRipple label="Chỉnh sửa" icon="pi pi-pencil" class="p-button-secondary p-button-outlined"
                 (click)="toggleEditMode()"></button>
             <button *ngIf="viewState === 'calendar' && isScheduleCreated && isEditMode" pButton pRipple label="Hoàn tất" icon="pi pi-check" class="p-button-success"
                 (click)="toggleEditMode()"></button>
-            <button *ngIf="!isScheduleCreated || viewState === 'employeeList'" pButton pRipple label="Thêm lịch làm việc" icon="pi pi-plus" class="p-button-primary"
+            <button *ngIf="viewState === 'employeeList'" pButton pRipple label="Thêm lịch làm việc" icon="pi pi-plus" class="p-button-primary"
                 (click)="openWizard()"></button>
         </div>
     </div>
@@ -349,8 +351,14 @@
                 </div>
                 <div class="flex flex-wrap">
                     <div *ngFor="let cell of monthDays"
-                        class="flex flex-column p-2 border-right-1 border-bottom-1 border-300"
-                        style="width: 14.28%; height: 90px;" [ngClass]="{'bg-surface-100': cell.isWeekend}">
+                        class="flex flex-column p-2 border-right-1 border-bottom-1 border-300 cursor-pointer calendar-cell"
+                        style="width: 14.28%; height: 90px;" [ngClass]="{'bg-surface-100': cell.isWeekend}"
+                        (click)="openEditDialog(cell)">
+                        
+                        <div class="edit-overlay" *ngIf="cell.date">
+                            <i class="pi pi-pencil"></i>
+                        </div>
+                        
                         <div class="text-right text-500 font-bold text-sm">{{cell.date}}</div>
 
                         <div class="flex-grow-1 flex align-items-center justify-content-center overflow-hidden px-1">
