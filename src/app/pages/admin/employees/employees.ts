@@ -64,6 +64,7 @@ export class Employees implements OnInit {
 
   displayAddDialog: boolean = false;
   newEmployee: any = {};
+  cccdDuplicateOf: string | null = null;
 
   hrPermissions = {
     manageSchedule: false,
@@ -136,10 +137,10 @@ export class Employees implements OnInit {
       if (this.hrPermissions.approveSchedule) updatedPerms.push('Duyệt lịch');
       if (this.hrPermissions.manageLeave) updatedPerms.push('Quản lý nghỉ phép');
       if (this.hrPermissions.viewReports) updatedPerms.push('Báo cáo');
-      
+
       this.selectedEmployee.permissions = updatedPerms;
       this.db.updateEmployee(this.selectedEmployee);
-      
+
       const index = this.allEmployees.findIndex(e => e.id === this.selectedEmployee.id);
       if (index !== -1) {
         this.allEmployees[index] = { ...this.selectedEmployee };
@@ -152,7 +153,7 @@ export class Employees implements OnInit {
     if (this.selectedEmployee) {
       this.db.updateEmployee(this.selectedEmployee);
       this.messageService.add({ severity: 'success', summary: 'Thành công', detail: 'Đã cập nhật chi nhánh làm việc', life: 2000 });
-      
+
       const index = this.allEmployees.findIndex(e => e.id === this.selectedEmployee.id);
       if (index !== -1) {
         this.allEmployees[index] = { ...this.selectedEmployee };
@@ -190,8 +191,10 @@ export class Employees implements OnInit {
       phone: '',
       department: 'Phòng IT',
       branchId: 'B_Q1',
+      cccd: '',
       avatar: ''
     };
+    this.cccdDuplicateOf = null;
     this.displayAddDialog = true;
   }
 
@@ -199,6 +202,16 @@ export class Employees implements OnInit {
     const maxId = this.allEmployees.length > 0 ? Math.max(...this.allEmployees.map(e => e.id)) : 0;
     const nextNum = maxId + 1;
     return 'NV' + nextNum.toString().padStart(3, '0');
+  }
+
+  onCccdChange() {
+    const val = (this.newEmployee.cccd || '').trim();
+    if (!val) {
+      this.cccdDuplicateOf = null;
+      return;
+    }
+    const duplicate = this.allEmployees.find(e => e.cccd && e.cccd.trim() === val);
+    this.cccdDuplicateOf = duplicate ? duplicate.fullName : null;
   }
 
   removeAccents(str: string): string {
@@ -230,8 +243,13 @@ export class Employees implements OnInit {
   }
 
   saveEmployee() {
-    if (!this.newEmployee.fullName || !this.newEmployee.department) {
-      this.messageService.add({ severity: 'error', summary: 'Lỗi', detail: 'Vui lòng nhập đầy đủ thông tin cần thiết', life: 3000 });
+    if (!this.newEmployee.fullName || !this.newEmployee.department || !this.newEmployee.cccd || !this.newEmployee.branchId) {
+      this.messageService.add({ severity: 'error', summary: 'Lỗi', detail: 'Vui lòng nhập đầy đủ thông tin bắt buộc (Họ tên, Phòng ban, Chi nhánh, CCCD)', life: 3000 });
+      return;
+    }
+
+    if (this.cccdDuplicateOf) {
+      this.messageService.add({ severity: 'error', summary: 'Trùng CCCD', detail: `Số CCCD đã được đăng ký bởi ${this.cccdDuplicateOf}. Vui lòng kiểm tra lại.`, life: 4000 });
       return;
     }
 
@@ -261,7 +279,8 @@ export class Employees implements OnInit {
       phone: this.newEmployee.phone || '',
       status: 'Làm việc',
       avatar: this.newEmployee.avatar || '',
-      branchId: this.newEmployee.branchId
+      branchId: this.newEmployee.branchId,
+      cccd: this.newEmployee.cccd
     };
 
     this.db.addEmployee(emp);

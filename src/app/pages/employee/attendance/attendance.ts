@@ -12,13 +12,14 @@ import { FormsModule } from '@angular/forms';
 import { SelectModule } from 'primeng/select';
 import { ToastModule } from 'primeng/toast';
 import { DialogModule } from 'primeng/dialog';
-import { MessageService } from 'primeng/api';
+import { MessageService, ConfirmationService } from 'primeng/api';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
 
 @Component({
   selector: 'app-employee-attendance',
   standalone: true,
-  imports: [CommonModule, ButtonModule, TooltipModule, BadgeModule, DatePickerModule, FormsModule, SelectModule, ToastModule, DialogModule],
-  providers: [MessageService],
+  imports: [CommonModule, ButtonModule, TooltipModule, BadgeModule, DatePickerModule, FormsModule, SelectModule, ToastModule, DialogModule, ConfirmDialogModule],
+  providers: [MessageService, ConfirmationService],
   templateUrl: './attendance.html',
   styleUrl: './attendance.scss'
 })
@@ -56,7 +57,7 @@ export class Attendance implements OnInit, OnDestroy, AfterViewInit {
   weekDays = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
   employeeSchedule: any[] = [];
 
-  constructor(private router: Router, private db: DatabaseService, private authService: AuthService, private messageService: MessageService) {}
+  constructor(private router: Router, private db: DatabaseService, private authService: AuthService, private messageService: MessageService, private confirmationService: ConfirmationService) {}
 
   ngOnInit() {
     this.db.leaveRequests$.subscribe(() => {
@@ -384,9 +385,11 @@ export class Attendance implements OnInit, OnDestroy, AfterViewInit {
 
     const user = this.authService.getCurrentUser();
     if (user) {
+       const now = new Date();
+       const localDate = `${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2,'0')}-${now.getDate().toString().padStart(2,'0')}`;
        this.db.addAttendanceRecord({
           employeeEmail: user.email,
-          date: new Date().toISOString().split('T')[0],
+          date: localDate,
           shift: this.selectedShift.value,
           checkInTime: this.firstCheckInTime,
           checkOutTime: null,
@@ -401,6 +404,45 @@ export class Attendance implements OnInit, OnDestroy, AfterViewInit {
   }
 
   checkoutAttendance() {
+    const todayCell = this.employeeSchedule.find(c => c.isToday);
+    if (!todayCell || !todayCell.checkIn) {
+      this.performCheckout(false);
+      return;
+    }
+
+    const now = new Date();
+    const checkInMinutes = this.timeToMinutes(todayCell.checkIn);
+    const checkOutMinutes = now.getHours() * 60 + now.getMinutes();
+    const workedMinutes = checkOutMinutes - checkInMinutes;
+
+    const shift = this.selectedShift?.value || 'FULL_DAY';
+    const requiredMinutes = shift === 'FULL_DAY' ? 8 * 60 : 4 * 60;
+    const requiredLabel = shift === 'FULL_DAY' ? '8 tiếng' : '4 tiếng';
+
+    if (workedMinutes < requiredMinutes) {
+      const workedHours = (workedMinutes / 60).toFixed(1);
+      this.confirmationService.confirm({
+        message: `Bạn chưa làm đủ giờ theo ca (${workedHours}/${requiredLabel}). Nếu chọn "Tiếp tục", ngày hôm nay sẽ được đánh dấu \u0111ỏ (thiếu giờ làm). Bạn có muốn checkout sớm không?`,
+        header: '⚠️ Cảnh báo: Làm việc chưa đủ giờ',
+        icon: 'pi pi-exclamation-triangle',
+        acceptLabel: 'Tiếp tục Checkout',
+        rejectLabel: 'Quay lại làm việc',
+        acceptButtonStyleClass: 'p-button-danger',
+        accept: () => {
+          this.performCheckout(true);
+        }
+      });
+    } else {
+      this.performCheckout(false);
+    }
+  }
+
+  timeToMinutes(timeStr: string): number {
+    const [h, m] = timeStr.split(':').map(Number);
+    return h * 60 + m;
+  }
+
+  performCheckout(isShortDay: boolean) {
     this.showSuccessAnimation = true;
     this.hasCheckedOut = true;
     const todayCell = this.employeeSchedule.find(c => c.isToday);
@@ -410,15 +452,18 @@ export class Attendance implements OnInit, OnDestroy, AfterViewInit {
       const outMin = now.getMinutes().toString().padStart(2, '0');
       todayCell.checkOut = `${outHour}:${outMin}`;
       todayCell.totalHours = this.calculateTotalHours(todayCell.checkIn, todayCell.checkOut);
+      todayCell.isShortDay = isShortDay;
     }
     
     const user = this.authService.getCurrentUser();
     if (user) {
-        const todayDate = new Date().toISOString().split('T')[0];
+        const now2 = new Date();
+        const todayDate = `${now2.getFullYear()}-${(now2.getMonth()+1).toString().padStart(2,'0')}-${now2.getDate().toString().padStart(2,'0')}`;
         const records = this.db.getAttendanceRecordsByEmployeeSync(user.email);
         const todayRecord = records.find(r => r.date === todayDate);
         if (todayRecord && todayCell) {
             todayRecord.checkOutTime = todayCell.checkOut;
+            todayRecord.isShortDay = isShortDay;
             this.db.updateAttendanceRecord(todayRecord);
         }
     }

@@ -87,6 +87,13 @@
                 </div>
             </div>
             <div class="flex align-items-center">
+                <i class="pi pi-id-card text-500 mr-3 text-xl"></i>
+                <div class="flex flex-column">
+                    <span class="text-500 text-sm">CCCD/CMND</span>
+                    <span class="text-900 font-medium">{{ selectedEmployee.cccd || 'Chưa cập nhật' }}</span>
+                </div>
+            </div>
+            <div class="flex align-items-center">
                 <i class="pi pi-map-marker text-500 mr-3 text-xl"></i>
                 <div class="flex flex-column w-full">
                     <span class="text-500 text-sm mb-1">Chi nhánh làm việc</span>
@@ -147,6 +154,14 @@
         </div>
 
         <div class="flex flex-column gap-2">
+            <label for="cccd" class="font-semibold">Số CCCD/CMND <span class="text-red-500">*</span></label>
+            <input id="cccd" type="text" pInputText [(ngModel)]="newEmployee.cccd" (ngModelChange)="onCccdChange()" placeholder="VD: 079204012345" maxlength="12" [ngClass]="{'ng-invalid ng-dirty': cccdDuplicateOf}" />
+            <small class="text-red-500" *ngIf="cccdDuplicateOf">
+                <i class="pi pi-exclamation-circle mr-1"></i>Số CCCD này đã được đăng ký bởi nhân viên <strong>{{ cccdDuplicateOf }}</strong>. Vui lòng kiểm tra lại.
+            </small>
+        </div>
+
+        <div class="flex flex-column gap-2">
             <label class="font-semibold">Ảnh đại diện (Tuỳ chọn)</label>
             <div class="border-2 border-dashed surface-border border-round flex flex-column align-items-center justify-content-center p-4 cursor-pointer hover:surface-100 transition-colors transition-duration-150" (click)="fileInput.click()" style="min-height: 150px">
                 <input #fileInput type="file" accept="image/*" class="hidden" (change)="onFileChange($event)" style="display: none;" />
@@ -166,6 +181,6 @@
     </div>
     <ng-template pTemplate="footer">
         <button pButton pRipple label="Huỷ" icon="pi pi-times" class="p-button-text" (click)="displayAddDialog = false"></button>
-        <button pButton pRipple label="Lưu" icon="pi pi-check" class="p-button-primary" (click)="saveEmployee()"></button>
+        <button pButton pRipple label="Lưu" icon="pi pi-check" class="p-button-primary" (click)="saveEmployee()" [disabled]="!!cccdDuplicateOf"></button>
     </ng-template>
 </p-dialog>
