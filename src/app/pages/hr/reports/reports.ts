@@ -12,7 +12,7 @@ import { ToastModule } from 'primeng/toast';
 import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { TooltipModule } from 'primeng/tooltip';
-import { DatabaseService } from '../../../core/services/database.service';
+import { DatabaseService, AttendanceRecord } from '../../../core/services/database.service';
 
 @Component({
   selector: 'app-hr-reports',
@@ -31,6 +31,8 @@ export class Reports implements OnInit {
   weekDays = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
   
   schedulesCache = new Map<number, any[]>();
+  scheduleSource: 'company' | 'dept' | null = null;
+  scheduleSourceEmp: any = null;
   
   displayEditDayDialog: boolean = false;
   editingCell: any = null;
@@ -71,9 +73,17 @@ export class Reports implements OnInit {
   }
 
   getRealSchedule(emp: any): any[] | null {
-    let baseSchedule = null;
     const year = new Date().getFullYear();
     const month = new Date().getMonth() + 1;
+    
+    // Check for report-level override first (for company-schedule employees edited in reports)
+    const overrideKey = `report_override_${emp.email}_${year}-${month}`;
+    const override = localStorage.getItem(overrideKey);
+    if (override) {
+      return JSON.parse(override);
+    }
+    
+    let baseSchedule = null;
     
     const req = this.db.getDepartmentRequestSync(emp.department);
     if (req && req.status === 'APPROVED') {
@@ -129,8 +139,46 @@ export class Reports implements OnInit {
   viewEmployeeDetails(employee: any) {
     this.selectedEmployee = employee;
     this.isEditingSchedule = false;
+    this.scheduleSource = null;
+    this.scheduleSourceEmp = employee;
+    
+    const year = new Date().getFullYear();
+    const month = new Date().getMonth() + 1;
+    
+    // Determine schedule source for later saving
+    const req = this.db.getDepartmentRequestSync(employee.department);
+    if (req && req.status === 'APPROVED') {
+      const deptSchedule = this.db.getDepartmentScheduleSync(employee.department, year, month);
+      if (deptSchedule && (deptSchedule.schedule || deptSchedule.employeeSchedules)) {
+        this.scheduleSource = 'dept';
+      } else {
+        this.scheduleSource = 'company';
+      }
+    } else {
+      this.scheduleSource = 'company';
+    }
+
     const schedule = this.getRealSchedule(employee);
-    this.employeeSchedule = schedule || [];
+    const attendanceRecords: AttendanceRecord[] = this.db.getAttendanceRecordsByEmployeeSync(employee.email);
+    
+    this.employeeSchedule = (schedule || []).map((cell: any) => {
+      if (cell.date) {
+        const today = new Date();
+        // Fix: build local date string without UTC conversion
+        const y = today.getFullYear();
+        const mo = (today.getMonth() + 1).toString().padStart(2, '0');
+        const d = cell.date.toString().padStart(2, '0');
+        const dateStr = `${y}-${mo}-${d}`;
+        const record = attendanceRecords.find(r => r.date === dateStr);
+        return {
+          ...cell,
+          isShortDay: record?.isShortDay || false,
+          checkIn: record?.checkInTime || null,
+          checkOut: record?.checkOutTime || null
+        };
+      }
+      return cell;
+    });
     this.displayEmployeeDetails = true;
   }
 
@@ -150,13 +198,36 @@ export class Reports implements OnInit {
         if (report) {
             report.totalHC = hc;
             report.totalOFF = off;
-            report.totalL = al; // In HTML, totalL represents AL (Phép). Or wait, let me check the HTML.
+            report.totalL = al;
             report.totalKP = kp;
             report.status = (hc + off + l >= 22) ? 'Đủ công' : 'Thiếu công';
         }
     }
 
-    this.messageService.add({ severity: 'success', summary: 'Thành công', detail: 'Đã cập nhật ký hiệu làm việc' });
+    // Persist the edited schedule back to DB
+    if (this.scheduleSourceEmp && this.employeeSchedule.length > 0) {
+      const year = new Date().getFullYear();
+      const month = new Date().getMonth() + 1;
+      
+      if (this.scheduleSource === 'dept') {
+        const deptSchedule = this.db.getDepartmentScheduleSync(this.scheduleSourceEmp.department, year, month);
+        if (deptSchedule) {
+          if (deptSchedule.isUniform) {
+            deptSchedule.schedule = this.employeeSchedule;
+          } else if (deptSchedule.employeeSchedules) {
+            deptSchedule.employeeSchedules[this.scheduleSourceEmp.email] = this.employeeSchedule;
+          }
+          this.db.saveDepartmentSchedule(this.scheduleSourceEmp.department, year, month, deptSchedule);
+        }
+      } else if (this.scheduleSource === 'company') {
+        // For company schedule, we save the modified employee schedule as a new per-employee override
+        // To avoid overwriting the whole company schedule, use dept schedule storage with employee-specific
+        const overrideKey = `report_override_${this.scheduleSourceEmp.email}_${year}-${month}`;
+        localStorage.setItem(overrideKey, JSON.stringify(this.employeeSchedule));
+      }
+    }
+
+    this.messageService.add({ severity: 'success', summary: 'Thành công', detail: 'Đã cập nhật và lưu ký hiệu làm việc' });
   }
 
   getSymbolColor(type: string): string {

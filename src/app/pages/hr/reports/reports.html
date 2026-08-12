@@ -89,7 +89,10 @@
             <div class="flex flex-wrap">
                 <div *ngFor="let cell of employeeSchedule"
                     class="flex flex-column p-2 border-right-1 border-bottom-1 border-300 calendar-cell"
-                    style="width: 14.28%; height: 100px;" [ngClass]="{'bg-surface-100': cell.isWeekend}">
+                    style="width: 14.28%; height: 100px;" [ngClass]="{
+                        'bg-surface-100': cell.isWeekend && !cell.isShortDay,
+                        'bg-red-100': cell.isShortDay
+                    }">
                     
                     <div *ngIf="isEditingSchedule && cell.date" class="edit-overlay" (click)="editDay(cell)">
                         <i class="pi pi-pencil text-white text-3xl"></i>
@@ -102,6 +105,14 @@
                             class="text-sm text-600 text-center font-italic text-overflow-ellipsis overflow-hidden white-space-nowrap"
                             style="max-width: 100%;">
                             {{cell.holidayName}}
+                        </div>
+                        <div *ngIf="cell.isShortDay" class="flex flex-column align-items-center gap-1">
+                            <i class="pi pi-clock text-red-500 text-lg"></i>
+                            <span class="text-red-500 text-xs font-bold">Thiếu giờ</span>
+                        </div>
+                        <div *ngIf="cell.checkIn && !cell.isShortDay" class="flex align-items-center gap-1 text-xs text-green-600 font-medium">
+                            <i class="pi pi-sign-in"></i>
+                            <span>{{ cell.checkIn }}</span>
                         </div>
                     </div>
 

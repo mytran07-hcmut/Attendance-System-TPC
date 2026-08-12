@@ -14,6 +14,7 @@ export interface Employee {
   avatar?: string;
   permissions?: string[];
   branchId?: string;
+  cccd?: string;
 }
 
 export interface Branch {
@@ -69,6 +70,7 @@ export interface AttendanceRecord {
   checkOutTime: string | null;
   location: { lat: number, lng: number, address: string } | null;
   selfieUrl: string | null;
+  isShortDay?: boolean;
 }
 
 export interface ScheduleSymbol {
@@ -141,6 +143,11 @@ export class DatabaseService {
             e.branchId = 'B_Q1';
             migrated = true;
          }
+         if (!e.cccd) {
+            // Tự động sinh CCCD giả theo pattern: 0XX + id 9 số để duy nhất
+            e.cccd = `0${(e.id % 10).toString()}${(e.id * 1234567 + 79).toString().padStart(9, '0').slice(0, 9)}`;
+            migrated = true;
+         }
          return e;
       });
       if (migrated) {
@@ -153,7 +160,8 @@ export class DatabaseService {
         ...emp,
         phone: emp.phone || '0901234567',
         status: emp.status || 'Làm việc',
-        branchId: emp.branchId || 'B_Q1' // Default to Branch Q1
+        branchId: emp.branchId || 'B_Q1',
+        cccd: emp.cccd || `0${(emp.id % 10).toString()}${(emp.id * 1234567 + 79).toString().padStart(9, '0').slice(0, 9)}`
       }));
       this.saveEmployees(initialData);
     }

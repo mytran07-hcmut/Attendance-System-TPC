@@ -38,6 +38,13 @@ export class Leave implements OnInit {
   selectedShift: any = this.shiftOptions[0];
   dateRange: Date[] | undefined;
   reason: string = '';
+  
+  minLeaveDate: Date = (() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    d.setHours(0, 0, 0, 0);
+    return d;
+  })();
 
   constructor(
     private messageService: MessageService, 
@@ -61,6 +68,19 @@ export class Leave implements OnInit {
   submitLeaveRequest() {
     if (!this.selectedType || !this.dateRange || this.dateRange.length === 0 || !this.reason) {
       this.messageService.add({ severity: 'error', summary: 'Lỗi', detail: 'Vui lòng điền đầy đủ thông tin' });
+      return;
+    }
+    
+    // Ràng buộc: không được đăng ký nghỉ phép cho hôm nay hoặc ngày quá khứ
+    const startDate = new Date(this.dateRange[0]);
+    startDate.setHours(0, 0, 0, 0);
+    if (startDate < this.minLeaveDate) {
+      this.messageService.add({ 
+        severity: 'warn', 
+        summary: 'Không hợp lệ', 
+        detail: 'Đơn nghỉ phép phải được nộp trước ngày nghỉ. Ngày nghỉ được chọn phải từ ngày mai trở đi.',
+        life: 5000
+      });
       return;
     }
 

@@ -1,4 +1,5 @@
 <p-toast></p-toast>
+<p-confirmDialog></p-confirmDialog>
 <div class="card relative overflow-hidden">
     <div class="flex flex-column md:flex-row justify-content-between align-items-start mb-5 gap-4">
         <div>
@@ -104,8 +105,8 @@
                 class="flex flex-column p-2 border-right-1 border-bottom-1 border-300 relative"
                 style="width: 14.28%; height: 120px;" [ngClass]="{
                     'bg-surface-50': cell.isWeekend && !cell.isPast && !cell.isPresent && !cell.isAbsent && !cell.isRejectedLeave,
-                    'bg-gray-100': cell.isPast || cell.isPresent,
-                    'bg-red-100': (cell.isAbsent && !cell.isApprovedLeave) || cell.isRejectedLeave,
+                    'bg-gray-100': cell.isPast || (cell.isPresent && !cell.isShortDay),
+                    'bg-red-100': (cell.isAbsent && !cell.isApprovedLeave) || cell.isRejectedLeave || cell.isShortDay,
                     'bg-green-50': cell.isApprovedLeave
                 }" [pTooltip]="cell.leaveReason" tooltipPosition="top">
 

@@ -18,7 +18,7 @@ import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
-import { DatabaseService, Employee, DepartmentRequest, DepartmentScheduleData, ScheduleDay, ScheduleSymbol } from '../../../core/services/database.service';
+import { DatabaseService, Employee, DepartmentRequest, DepartmentScheduleData, ScheduleDay, ScheduleSymbol, AttendanceRecord } from '../../../core/services/database.service';
 
 @Component({
   selector: 'app-hr-schedule',
@@ -179,10 +179,24 @@ export class Schedule implements OnInit {
       } else {
         this.editingCell.holidayName = '';
       }
+
+      const year = this.currentMonth.getFullYear();
+      const month = this.currentMonth.getMonth() + 1;
+
       if (this.viewState === 'employeeCalendar') {
         this.calculateTotalWorkDays();
+        // Persist the change back to DB
+        if (this.deptScheduleData && this.selectedEmployee) {
+          // monthDays references deptScheduleData.schedule or employeeSchedules[email] directly,
+          // so the in-memory object is already mutated. We just need to save it.
+          this.db.saveDepartmentSchedule(this.selectedEmployee.department, year, month, this.deptScheduleData);
+        } else {
+          // Fallback: save to company schedule
+          this.db.saveCompanySchedule(year, month, this.monthDays);
+        }
+        this.messageService.add({ severity: 'success', summary: 'Đã lưu', detail: 'Ký hiệu ngày làm việc đã được cập nhật', life: 2000 });
       } else if (this.viewState === 'calendar' && this.selectedScope?.code === 'ALL') {
-        this.db.saveCompanySchedule(this.currentMonth.getFullYear(), this.currentMonth.getMonth() + 1, this.monthDays);
+        this.db.saveCompanySchedule(year, month, this.monthDays);
       }
     }
     this.displayEditDialog = false;
@@ -275,7 +289,42 @@ export class Schedule implements OnInit {
     this.currentDeptRequest = this.db.getDepartmentRequestSync(emp.department);
     this.deptScheduleData = this.db.getDepartmentScheduleSync(emp.department, this.currentMonth.getFullYear(), this.currentMonth.getMonth() + 1);
     this.generateCalendar();
+    this.overlayAttendanceData();
     this.calculateTotalWorkDays();
+  }
+
+  overlayAttendanceData() {
+    if (!this.selectedEmployee || this.viewState !== 'employeeCalendar') return;
+    
+    const year = this.currentMonth.getFullYear();
+    const month = this.currentMonth.getMonth();
+    const today = new Date();
+    const records: AttendanceRecord[] = this.db.getAttendanceRecordsByEmployeeSync(this.selectedEmployee.email);
+    
+    this.monthDays = this.monthDays.map(cell => {
+      if (!cell.date) return cell;
+      
+      // Fix: use local date string (not toISOString which converts to UTC and shifts the day in UTC+7)
+      const d = cell.date.toString().padStart(2, '0');
+      const m = (month + 1).toString().padStart(2, '0');
+      const dateStr = `${year}-${m}-${d}`;
+      const record = records.find(r => r.date === dateStr);
+      
+      // Recalculate isToday and isPast based on actual current date (fix stale stored values)
+      const isToday = year === today.getFullYear() && month === today.getMonth() && cell.date === today.getDate();
+      const isPast = (year < today.getFullYear()) ||
+                     (year === today.getFullYear() && month < today.getMonth()) ||
+                     (year === today.getFullYear() && month === today.getMonth() && cell.date < today.getDate());
+      
+      return {
+        ...cell,
+        isToday,
+        isPast,
+        checkIn: record?.checkInTime || null,
+        checkOut: record?.checkOutTime || null,
+        isShortDay: record?.isShortDay || false
+      };
+    });
   }
 
   calculateTotalWorkDays() {
