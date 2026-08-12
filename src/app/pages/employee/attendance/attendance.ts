@@ -1,23 +1,30 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, OnDestroy, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ButtonModule } from 'primeng/button';
 import { TooltipModule } from 'primeng/tooltip';
 import { BadgeModule } from 'primeng/badge';
 import { Router } from '@angular/router';
-import { DatabaseService, ScheduleDay } from '../../../core/services/database.service';
+import { DatabaseService, ScheduleDay, Branch } from '../../../core/services/database.service';
 import { AuthService } from '../../../core/services/auth';
 
 import { DatePickerModule } from 'primeng/datepicker';
 import { FormsModule } from '@angular/forms';
+import { SelectModule } from 'primeng/select';
+import { ToastModule } from 'primeng/toast';
+import { DialogModule } from 'primeng/dialog';
+import { MessageService } from 'primeng/api';
 
 @Component({
   selector: 'app-employee-attendance',
   standalone: true,
-  imports: [CommonModule, ButtonModule, TooltipModule, BadgeModule, DatePickerModule, FormsModule],
+  imports: [CommonModule, ButtonModule, TooltipModule, BadgeModule, DatePickerModule, FormsModule, SelectModule, ToastModule, DialogModule],
+  providers: [MessageService],
   templateUrl: './attendance.html',
   styleUrl: './attendance.scss'
 })
-export class Attendance implements OnInit {
+export class Attendance implements OnInit, OnDestroy, AfterViewInit {
+  @ViewChild('videoElement') videoElement!: ElementRef<HTMLVideoElement>;
+  @ViewChild('canvasElement') canvasElement!: ElementRef<HTMLCanvasElement>;
   today: Date = new Date();
   currentViewMonth: Date = new Date();
   hasConfirmed: boolean = false;
@@ -25,18 +32,176 @@ export class Attendance implements OnInit {
   attendanceStatus: 'present' | 'absent' | null = null;
   isLeaveSubmitted: boolean = false;
   showSuccessAnimation: boolean = false;
+  showCheckInDialog: boolean = false;
   isSchedulePublished: boolean = true;
+  hasSchedule: boolean = true;
   firstCheckInTime: string | null = null;
+  
+  shiftOptions = [
+    { label: 'Cả Ngày', value: 'FULL_DAY' },
+    { label: 'Ca Sáng', value: 'MORNING' },
+    { label: 'Ca Chiều', value: 'AFTERNOON' }
+  ];
+  selectedShift: any = this.shiftOptions[0];
+
+  cameraStream: MediaStream | null = null;
+  capturedImage: string | null = null;
+  location: { lat: number, lng: number, address: string } | null = null;
+  locationError: string | null = null;
+  isFetchingLocation: boolean = false;
+  
+  myBranch: Branch | null = null;
+  distanceToBranch: number | null = null;
   
   weekDays = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
   employeeSchedule: any[] = [];
 
-  constructor(private router: Router, private db: DatabaseService, private authService: AuthService) {}
+  constructor(private router: Router, private db: DatabaseService, private authService: AuthService, private messageService: MessageService) {}
 
   ngOnInit() {
     this.db.leaveRequests$.subscribe(() => {
       this.generateMockSchedule();
     });
+    
+    const user = this.authService.getCurrentUser();
+    if (user) {
+        const emps = this.db.getEmployeesSync();
+        const me = emps.find(e => e.email === user.email);
+        if (me && me.branchId) {
+            this.myBranch = this.db.getBranchesSync().find(b => b.id === me.branchId) || null;
+        }
+    }
+  }
+
+  ngAfterViewInit() {
+  }
+
+  openCheckInDialog() {
+    this.showCheckInDialog = true;
+    this.fetchLocation();
+    setTimeout(() => {
+        this.startCamera();
+    }, 200);
+  }
+
+  closeCheckInDialog() {
+    this.showCheckInDialog = false;
+    this.stopCamera();
+    this.capturedImage = null;
+    this.locationError = null;
+    this.isFetchingLocation = false;
+  }
+
+  ngOnDestroy() {
+    this.stopCamera();
+  }
+
+  startCamera() {
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } })
+        .then(stream => {
+          this.cameraStream = stream;
+          if (this.videoElement) {
+            this.videoElement.nativeElement.srcObject = stream;
+          }
+        })
+        .catch(err => {
+          console.error('Camera error:', err);
+          this.messageService.add({ severity: 'error', summary: 'Lỗi', detail: 'Không thể truy cập camera.' });
+        });
+    }
+  }
+
+  stopCamera() {
+    if (this.cameraStream) {
+      this.cameraStream.getTracks().forEach(track => track.stop());
+      this.cameraStream = null;
+    }
+  }
+
+  captureImage() {
+    if (this.videoElement && this.canvasElement) {
+      const video = this.videoElement.nativeElement;
+      const canvas = this.canvasElement.nativeElement;
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const context = canvas.getContext('2d');
+      if (context) {
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        this.capturedImage = canvas.toDataURL('image/png');
+        this.stopCamera();
+      }
+    }
+  }
+
+  retakeImage() {
+    this.capturedImage = null;
+    this.startCamera();
+  }
+
+  calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+    const R = 6371e3; // metres
+    const p1 = lat1 * Math.PI/180;
+    const p2 = lat2 * Math.PI/180;
+    const dp = (lat2-lat1) * Math.PI/180;
+    const dl = (lon2-lon1) * Math.PI/180;
+
+    const a = Math.sin(dp/2) * Math.sin(dp/2) +
+              Math.cos(p1) * Math.cos(p2) *
+              Math.sin(dl/2) * Math.sin(dl/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+    return R * c;
+  }
+
+  fetchLocation() {
+    this.isFetchingLocation = true;
+    this.locationError = null;
+    this.distanceToBranch = null;
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+          let addressString = `Lat: ${lat.toFixed(4)}, Lng: ${lng.toFixed(4)}`;
+          
+          // Cho phép chấm công ngay lập tức bằng tọa độ
+          this.location = {
+            lat: lat,
+            lng: lng,
+            address: addressString
+          };
+          
+          if (this.myBranch) {
+             this.distanceToBranch = this.calculateDistance(lat, lng, this.myBranch.lat, this.myBranch.lng);
+             if (this.distanceToBranch > this.myBranch.radius) {
+                 this.locationError = `Vị trí quá xa so với ${this.myBranch.name} (cách ${Math.round(this.distanceToBranch)}m). Vui lòng đến đúng chi nhánh để chấm công.`;
+             }
+          }
+          
+          this.isFetchingLocation = false;
+          
+          // Dịch địa chỉ ngầm ở background, không block UI
+          fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`)
+             .then(res => res.ok ? res.json() : null)
+             .then(data => {
+                if (data && data.display_name && this.location) {
+                    this.location.address = data.display_name;
+                }
+             })
+             .catch(e => console.error('Reverse geocoding error:', e));
+        },
+        (error) => {
+          console.error('Geolocation error:', error);
+          this.locationError = 'Vui lòng cấp quyền truy cập vị trí để chấm công.';
+          this.isFetchingLocation = false;
+        },
+        { enableHighAccuracy: false, timeout: 5000, maximumAge: 60000 }
+      );
+    } else {
+      this.locationError = 'Trình duyệt không hỗ trợ Geolocation.';
+      this.isFetchingLocation = false;
+    }
   }
 
   generateMockSchedule() {
@@ -61,7 +226,7 @@ export class Attendance implements OnInit {
     if (me) {
         const req = this.db.getDepartmentRequestSync(me.department);
         if (req && req.status === 'APPROVED') {
-            const deptSchedule = this.db.getDepartmentScheduleSync(me.department);
+            const deptSchedule = this.db.getDepartmentScheduleSync(me.department, year, month + 1);
             if (deptSchedule) {
                 if (deptSchedule.isUniform && deptSchedule.schedule) {
                     baseSchedule = deptSchedule.schedule;
@@ -73,52 +238,32 @@ export class Attendance implements OnInit {
     }
     
     if (!baseSchedule || baseSchedule.length === 0) {
-        baseSchedule = this.db.getCompanyScheduleSync();
+        baseSchedule = this.db.getCompanyScheduleSync(year, month + 1);
     }
     
-    // Fallback if no schedule in DB
-    if (!baseSchedule || baseSchedule.length === 0) {
-        baseSchedule = [];
-        const year = this.currentViewMonth.getFullYear();
-        const month = this.currentViewMonth.getMonth();
-        const firstDay = new Date(year, month, 1).getDay();
-        const daysInMonth = new Date(year, month + 1, 0).getDate();
-        let startOffset = firstDay === 0 ? 6 : firstDay - 1;
-        
-        for (let i = 0; i < startOffset; i++) {
-            baseSchedule.push({ date: null, type: '' });
-        }
-        for (let i = 1; i <= daysInMonth; i++) {
-            let currentDayOfWeek = (startOffset + i - 1) % 7;
-            let isWeekend = currentDayOfWeek === 5 || currentDayOfWeek === 6;
-            baseSchedule.push({ date: i, type: isWeekend ? 'OFF' : 'HC' });
-        }
-    }
-
-    baseSchedule.forEach(cell => {
-        if (!cell.date) {
-            this.employeeSchedule.push({ ...cell, isWeekend: false });
+        if (!baseSchedule || baseSchedule.length === 0) {
+            this.hasSchedule = false;
             return;
+        } else {
+            this.hasSchedule = true;
         }
 
-        let isToday = cell.date === this.today.getDate() && 
-                      this.currentViewMonth.getMonth() === this.today.getMonth() && 
-                      this.currentViewMonth.getFullYear() === this.today.getFullYear();
-        let isPast = (this.currentViewMonth.getFullYear() < this.today.getFullYear()) || 
-                     (this.currentViewMonth.getFullYear() === this.today.getFullYear() && this.currentViewMonth.getMonth() < this.today.getMonth()) || 
-                     (this.currentViewMonth.getFullYear() === this.today.getFullYear() && this.currentViewMonth.getMonth() === this.today.getMonth() && cell.date < this.today.getDate());
-        
-        let checkIn = null;
-        let checkOut = null;
-        let totalHours = null;
-        if (isPast && cell.type === 'HC') {
-            const inMin = Math.floor(Math.random() * 30).toString().padStart(2, '0');
-            checkIn = `08:${inMin}`;
-            const outHour = Math.floor(Math.random() * 2) + 17;
-            const outMin = Math.floor(Math.random() * 60).toString().padStart(2, '0');
-            checkOut = `${outHour}:${outMin}`;
-            totalHours = this.calculateTotalHours(checkIn, checkOut);
-        }
+        baseSchedule.forEach(cell => {
+            if (!cell.date) {
+                this.employeeSchedule.push({ ...cell, isWeekend: false });
+                return;
+            }
+
+            let isToday = cell.date === this.today.getDate() && 
+                          this.currentViewMonth.getMonth() === this.today.getMonth() && 
+                          this.currentViewMonth.getFullYear() === this.today.getFullYear();
+            let isPast = (this.currentViewMonth.getFullYear() < this.today.getFullYear()) || 
+                         (this.currentViewMonth.getFullYear() === this.today.getFullYear() && this.currentViewMonth.getMonth() < this.today.getMonth()) || 
+                         (this.currentViewMonth.getFullYear() === this.today.getFullYear() && this.currentViewMonth.getMonth() === this.today.getMonth() && cell.date < this.today.getDate());
+            
+            let checkIn = null;
+            let checkOut = null;
+            let totalHours = null;
 
         this.employeeSchedule.push({
             ...cell,
@@ -209,21 +354,24 @@ export class Attendance implements OnInit {
   }
 
   getSymbolColor(type: string): string {
-    switch (type) {
-      case 'HC': return '#f4cccc';
-      case 'OFF': return '#d9d2e9';
-      case 'AL': return '#d9ead3';
-      case 'KP': return '#c9daf8';
-      case 'L': return '#fff2cc';
-      case 'WFH': return '#ffe5b4';
-      default: return '#ffffff';
-    }
+    return this.db.getSymbolColor(type);
   }
 
   confirmAttendance() {
+    if (this.locationError || !this.location) {
+      this.messageService.add({ severity: 'error', summary: 'Lỗi', detail: 'Bạn cần cấp quyền vị trí để chấm công' });
+      return;
+    }
+    
+    if (!this.capturedImage) {
+      this.messageService.add({ severity: 'error', summary: 'Lỗi', detail: 'Vui lòng chụp ảnh selfie tại nơi làm việc' });
+      return;
+    }
+
     this.showSuccessAnimation = true;
     this.hasConfirmed = true;
     this.attendanceStatus = 'present';
+    this.closeCheckInDialog();
     const todayCell = this.employeeSchedule.find(c => c.isToday);
     if (todayCell) {
       todayCell.isPresent = true;
@@ -232,6 +380,19 @@ export class Attendance implements OnInit {
         this.firstCheckInTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
       }
       todayCell.checkIn = this.firstCheckInTime;
+    }
+
+    const user = this.authService.getCurrentUser();
+    if (user) {
+       this.db.addAttendanceRecord({
+          employeeEmail: user.email,
+          date: new Date().toISOString().split('T')[0],
+          shift: this.selectedShift.value,
+          checkInTime: this.firstCheckInTime,
+          checkOutTime: null,
+          location: this.location,
+          selfieUrl: this.capturedImage
+       });
     }
 
     setTimeout(() => {
@@ -249,6 +410,17 @@ export class Attendance implements OnInit {
       const outMin = now.getMinutes().toString().padStart(2, '0');
       todayCell.checkOut = `${outHour}:${outMin}`;
       todayCell.totalHours = this.calculateTotalHours(todayCell.checkIn, todayCell.checkOut);
+    }
+    
+    const user = this.authService.getCurrentUser();
+    if (user) {
+        const todayDate = new Date().toISOString().split('T')[0];
+        const records = this.db.getAttendanceRecordsByEmployeeSync(user.email);
+        const todayRecord = records.find(r => r.date === todayDate);
+        if (todayRecord && todayCell) {
+            todayRecord.checkOutTime = todayCell.checkOut;
+            this.db.updateAttendanceRecord(todayRecord);
+        }
     }
 
     setTimeout(() => {

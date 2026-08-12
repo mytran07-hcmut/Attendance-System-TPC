@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
@@ -9,6 +9,7 @@ import { ColorPickerModule } from 'primeng/colorpicker';
 import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
 import { TextareaModule } from 'primeng/textarea';
+import { DatabaseService, ScheduleSymbol } from '../../../core/services/database.service';
 
 @Component({
   selector: 'app-hr-symbols',
@@ -17,21 +18,19 @@ import { TextareaModule } from 'primeng/textarea';
   templateUrl: './symbols.html',
   styleUrl: './symbols.scss'
 })
-export class Symbols {
-  defaultSymbols = [
-    { code: 'HC', name: 'Hành chính (Đi làm đủ)', color: '#f4cccc', description: 'Áp dụng khi nhân viên đến văn phòng/nhà máy làm việc và check-in đủ ca tiêu chuẩn (thường là 8 tiếng).' },
-    { code: 'AL', name: 'Nghỉ phép năm', color: '#d9ead3', description: 'Áp dụng khi nhân viên chủ động xin nghỉ giải quyết việc riêng, đi du lịch... và số ngày nghỉ được trừ trực tiếp vào Quỹ phép năm còn lại của họ.' },
-    { code: 'KP', name: 'Nghỉ không phép', color: '#c9daf8', description: 'Áp dụng khi nhân viên tự ý bỏ việc không thông báo, gọi điện không bắt máy. Ký hiệu này dùng làm căn cứ xử lý kỷ luật hoặc trừ điểm chuyên cần.' },
-    { code: 'OFF', name: 'Ngày nghỉ tuần', color: '#d9d2e9', description: 'Áp dụng cho ngày nghỉ mặc định trong tuần (thường là Chủ Nhật), hoặc ngày nghỉ xoay ca linh hoạt của nhân viên khối dịch vụ/cửa hàng.' },
-    { code: 'L', name: 'Nghỉ Lễ, Tết', color: '#fff2cc', description: 'Hệ thống tự động áp dụng cho toàn công ty vào các ngày quốc lễ (Tết Âm/Dương lịch, 30/4, 1/5, Quốc khánh 2/9, Giỗ tổ Hùng Vương).' },
-    { code: 'WFH', name: 'Làm việc tại nhà', color: '#ffe5b4', description: 'Áp dụng khi nhân viên được cho phép làm việc từ xa (Work From Home).' }
-  ];
-
-  symbols = [...this.defaultSymbols.map(s => ({ ...s }))];
-
+export class Symbols implements OnInit {
+  symbols: ScheduleSymbol[] = [];
   displayDialog: boolean = false;
   symbol: any = {};
   isEdit: boolean = false;
+
+  constructor(private db: DatabaseService) {}
+
+  ngOnInit() {
+    this.db.symbols$.subscribe(data => {
+      this.symbols = [...data.map(s => ({ ...s }))];
+    });
+  }
 
   showDialogToAdd() {
     this.isEdit = false;
@@ -46,20 +45,26 @@ export class Symbols {
   }
 
   save() {
+    let updatedSymbols = [...this.symbols];
     if (this.isEdit) {
-      const index = this.symbols.findIndex(s => s.code === this.symbol.code);
-      this.symbols[index] = this.symbol;
+      const index = updatedSymbols.findIndex(s => s.code === this.symbol.code);
+      if (index !== -1) {
+        updatedSymbols[index] = this.symbol;
+      }
     } else {
-      this.symbols.push(this.symbol);
+      updatedSymbols.push(this.symbol);
     }
+    this.db.saveSymbols(updatedSymbols);
     this.displayDialog = false;
   }
 
   delete(symbol: any) {
-    this.symbols = this.symbols.filter(s => s.code !== symbol.code);
+    const updatedSymbols = this.symbols.filter(s => s.code !== symbol.code);
+    this.db.saveSymbols(updatedSymbols);
   }
 
   resetDefault() {
-    this.symbols = [...this.defaultSymbols.map(s => ({ ...s }))];
+    localStorage.removeItem('mock_db_symbols');
+    window.location.reload(); // Simple way to trigger default init from service
   }
 }

@@ -111,16 +111,18 @@ export class Dashboard {
   }
 
   getScheduleType(department: string): string {
-    const data = this.db.getDepartmentScheduleSync(department);
+    const year = new Date().getFullYear();
+    const month = new Date().getMonth() + 1;
+    const data = this.db.getDepartmentScheduleSync(department, year, month);
     if (!data) return 'Chưa xác định';
     return data.isUniform ? 'Chung toàn phòng' : 'Riêng từng nhân viên';
   }
 
   previewDepartmentSchedule(req: DepartmentRequest) {
     this.previewReq = req;
-    this.previewScheduleData = this.db.getDepartmentScheduleSync(req.department);
     this.previewMonth = req.month || new Date().getMonth() + 1;
     this.previewYear = req.year || new Date().getFullYear();
+    this.previewScheduleData = this.db.getDepartmentScheduleSync(req.department, this.previewYear, this.previewMonth);
     
     if (this.previewScheduleData) {
       if (this.previewScheduleData.isUniform && this.previewScheduleData.schedule) {

@@ -16,7 +16,7 @@ import { ToastModule } from 'primeng/toast';
 import { FileUploadModule } from 'primeng/fileupload';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
 import { ConfirmationService, MessageService } from 'primeng/api';
-import { DatabaseService, Employee } from '../../../core/services/database.service';
+import { DatabaseService, Employee, Branch } from '../../../core/services/database.service';
 
 @Component({
   selector: 'app-employees',
@@ -57,6 +57,7 @@ export class Employees implements OnInit {
 
   allEmployees: Employee[] = [];
   employees: Employee[] = [];
+  branches: Branch[] = [];
 
   displayDetailDialog: boolean = false;
   selectedEmployee: any = null;
@@ -86,6 +87,15 @@ export class Employees implements OnInit {
       this.allEmployees = data;
       this.filterEmployees();
     });
+    this.db.branches$.subscribe(data => {
+      this.branches = data;
+    });
+  }
+
+  getBranchName(branchId: string | undefined): string {
+    if (!branchId) return 'Chưa phân công';
+    const branch = this.branches.find(b => b.id === branchId);
+    return branch ? branch.name : 'Không xác định';
   }
 
   onDepartmentChange() {
@@ -138,6 +148,19 @@ export class Employees implements OnInit {
     }
   }
 
+  updateEmployeeBranch() {
+    if (this.selectedEmployee) {
+      this.db.updateEmployee(this.selectedEmployee);
+      this.messageService.add({ severity: 'success', summary: 'Thành công', detail: 'Đã cập nhật chi nhánh làm việc', life: 2000 });
+      
+      const index = this.allEmployees.findIndex(e => e.id === this.selectedEmployee.id);
+      if (index !== -1) {
+        this.allEmployees[index] = { ...this.selectedEmployee };
+      }
+      this.filterEmployees();
+    }
+  }
+
   canDelete(employee: Employee): boolean {
     if (!employee) return false;
     if (employee.department === 'Ban Giám đốc') return false;
@@ -166,6 +189,7 @@ export class Employees implements OnInit {
       fullName: '',
       phone: '',
       department: 'Phòng IT',
+      branchId: 'B_Q1',
       avatar: ''
     };
     this.displayAddDialog = true;
@@ -236,7 +260,8 @@ export class Employees implements OnInit {
       email: this.generateEmail(this.newEmployee.fullName),
       phone: this.newEmployee.phone || '',
       status: 'Làm việc',
-      avatar: this.newEmployee.avatar || ''
+      avatar: this.newEmployee.avatar || '',
+      branchId: this.newEmployee.branchId
     };
 
     this.db.addEmployee(emp);

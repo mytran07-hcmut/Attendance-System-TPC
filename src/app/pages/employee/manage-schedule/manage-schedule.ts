@@ -44,7 +44,9 @@ export class ManageSchedule implements OnInit {
         this.departmentEmployees = emps.filter(e => e.department === this.department);
         this.db.deptRequests$.subscribe(requests => {
           this.pendingRequest = requests[this.department] || null;
-          const saved = this.db.getDepartmentScheduleSync(this.department);
+          const year = this.pendingRequest?.year || new Date().getFullYear();
+          const month = this.pendingRequest?.month || new Date().getMonth() + 1;
+          const saved = this.db.getDepartmentScheduleSync(this.department, year, month);
           
           if (saved) {
              this.fillMode = saved.isUniform ? 'uniform' : 'individual';
@@ -62,7 +64,10 @@ export class ManageSchedule implements OnInit {
   }
 
   generateDefaultSchedule() {
-    const companySched = this.db.getCompanyScheduleSync();
+    const today = new Date();
+    const year = this.pendingRequest?.year || today.getFullYear();
+    const month = this.pendingRequest?.month || today.getMonth() + 1;
+    const companySched = this.db.getCompanyScheduleSync(year, month);
     let defaultSched: ScheduleDay[] = [];
     if (companySched && companySched.length > 0) {
        defaultSched = JSON.parse(JSON.stringify(companySched));
@@ -78,8 +83,7 @@ export class ManageSchedule implements OnInit {
          defaultSched.push({ date: null, type: '' });
        }
        for (let i = 1; i <= daysInMonth; i++) {
-         const dow = (startOffset + i - 1) % 7;
-         defaultSched.push({ date: i, type: (dow === 5 || dow === 6) ? 'OFF' : 'HC' });
+         defaultSched.push({ date: i, type: '' });
        }
     }
 
@@ -93,7 +97,8 @@ export class ManageSchedule implements OnInit {
   toggleDay(day: ScheduleDay) {
     if (!day.date) return;
     if (this.pendingRequest?.status !== 'PENDING_HEAD') return;
-    day.type = day.type === 'HC' ? 'WFH' : (day.type === 'WFH' ? 'OFF' : 'HC');
+    if (!day.type) day.type = 'HC';
+    else day.type = day.type === 'HC' ? 'WFH' : (day.type === 'WFH' ? 'OFF' : 'HC');
   }
 
   applyToAllWeekdays(day: ScheduleDay, scheduleArray: ScheduleDay[], event: Event) {
@@ -116,6 +121,10 @@ export class ManageSchedule implements OnInit {
   selectEmployee(emp: Employee) {
       this.selectedEmployeeForSchedule = emp;
   }
+  
+  getSymbolColor(code: string): string {
+      return this.db.getSymbolColor(code);
+  }
 
   backToEmployeeList() {
       this.selectedEmployeeForSchedule = null;
@@ -127,8 +136,10 @@ export class ManageSchedule implements OnInit {
         schedule: this.fillMode === 'uniform' ? this.schedule : undefined,
         employeeSchedules: this.fillMode === 'individual' ? this.employeeSchedules : undefined
     };
-    this.db.saveDepartmentSchedule(this.department, payload);
-    this.db.updateDepartmentRequest(this.department, 'PENDING_HR');
+    const year = this.pendingRequest?.year || new Date().getFullYear();
+    const month = this.pendingRequest?.month || new Date().getMonth() + 1;
+    this.db.saveDepartmentSchedule(this.department, year, month, payload);
+    this.db.updateDepartmentRequest(this.department, 'PENDING_HR', month, year);
     this.messageService.add({ severity: 'success', summary: 'Thành công', detail: 'Đã gửi lịch cho HR duyệt' });
   }
 }

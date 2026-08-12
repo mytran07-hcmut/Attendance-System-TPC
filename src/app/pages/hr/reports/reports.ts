@@ -51,72 +51,61 @@ export class Reports implements OnInit {
       const targetEmployees = employees.slice(0, 30);
       
       targetEmployees.forEach((emp) => {
-        const schedule = this.getOrCreateSchedule(emp.id);
-        const { hc, off, l, kp } = this.calculateTotals(schedule);
+        const schedule = this.getRealSchedule(emp);
+        const { hc, off, l, kp, hasSchedule } = this.calculateTotals(schedule);
         
         this.reports.push({
           id: emp.id,
           employee: emp.fullName,
           department: emp.department,
+          email: emp.email,
+          title: emp.title,
           totalHC: hc,
           totalOFF: off,
           totalL: l,
           totalKP: kp,
-          status: (hc + off + l >= 22) ? 'Đủ công' : 'Thiếu công'
+          status: hasSchedule ? ((hc + off + l >= 22) ? 'Đủ công' : 'Thiếu công') : 'Chưa có lịch'
         });
       });
     });
   }
 
-  getOrCreateSchedule(employeeId: number): any[] {
-    if (this.schedulesCache.has(employeeId)) {
-        return this.schedulesCache.get(employeeId)!;
-    }
-
-    const schedule = [];
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = today.getMonth();
-    const firstDay = new Date(year, month, 1).getDay();
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    let startOffset = firstDay === 0 ? 6 : firstDay - 1;
+  getRealSchedule(emp: any): any[] | null {
+    let baseSchedule = null;
+    const year = new Date().getFullYear();
+    const month = new Date().getMonth() + 1;
     
-    for (let i = 0; i < startOffset; i++) {
-        schedule.push({ date: null, type: null, isWeekend: false });
+    const req = this.db.getDepartmentRequestSync(emp.department);
+    if (req && req.status === 'APPROVED') {
+        const deptSchedule = this.db.getDepartmentScheduleSync(emp.department, year, month);
+        if (deptSchedule) {
+            if (deptSchedule.isUniform && deptSchedule.schedule) {
+                baseSchedule = deptSchedule.schedule;
+            } else if (!deptSchedule.isUniform && deptSchedule.employeeSchedules && deptSchedule.employeeSchedules[emp.email]) {
+                baseSchedule = deptSchedule.employeeSchedules[emp.email];
+            }
+        }
     }
     
-    for (let i = 1; i <= daysInMonth; i++) {
-        let currentDayOfWeek = (startOffset + i - 1) % 7;
-        let isWeekend = currentDayOfWeek === 5 || currentDayOfWeek === 6;
-        
-        let type = 'HC';
-        if (isWeekend) type = 'OFF';
-        else if (Math.random() > 0.9) type = 'AL';
-        
-        if (i === 30) type = 'L'; // Fake holiday
-        
-        schedule.push({
-            date: i,
-            type: type,
-            isWeekend: isWeekend,
-            holidayName: type === 'L' ? 'Ngày Lễ' : null
-        });
+    if (!baseSchedule || baseSchedule.length === 0) {
+        baseSchedule = this.db.getCompanyScheduleSync(year, month);
     }
-
-    this.schedulesCache.set(employeeId, schedule);
-    return schedule;
+    
+    return baseSchedule && baseSchedule.length > 0 ? baseSchedule : null;
   }
 
-  calculateTotals(schedule: any[]) {
+  calculateTotals(schedule: any[] | null) {
+      if (!schedule) return { hc: 0, off: 0, l: 0, kp: 0, al: 0, hasSchedule: false };
+      
       let hc = 0, off = 0, l = 0, kp = 0, al = 0;
       schedule.forEach(cell => {
-          if (cell.type === 'HC') hc++;
+          if (cell.type === 'HC' || cell.type === 'WFH') hc++;
           else if (cell.type === 'OFF') off++;
           else if (cell.type === 'L') l++;
           else if (cell.type === 'KP') kp++;
           else if (cell.type === 'AL') al++;
       });
-      return { hc, off, l, kp, al };
+      return { hc, off, l, kp, al, hasSchedule: true };
   }
 
   exportExcel() {
@@ -140,12 +129,13 @@ export class Reports implements OnInit {
   viewEmployeeDetails(employee: any) {
     this.selectedEmployee = employee;
     this.isEditingSchedule = false;
-    this.employeeSchedule = this.getOrCreateSchedule(employee.id);
+    const schedule = this.getRealSchedule(employee);
+    this.employeeSchedule = schedule || [];
     this.displayEmployeeDetails = true;
   }
 
   editDay(cell: any) {
-    if (!this.isEditingSchedule || !cell.date) return;
+    if (!this.isEditingSchedule || !cell.date || !this.employeeSchedule.length) return;
     this.editingCell = cell;
     this.displayEditDayDialog = true;
   }
@@ -154,18 +144,15 @@ export class Reports implements OnInit {
     this.displayEditDayDialog = false;
     
     // Recalculate totals for the selected employee
-    if (this.selectedEmployee) {
-        const schedule = this.schedulesCache.get(this.selectedEmployee.id);
-        if (schedule) {
-            const { hc, off, l, kp, al } = this.calculateTotals(schedule);
-            const report = this.reports.find(r => r.id === this.selectedEmployee.id);
-            if (report) {
-                report.totalHC = hc;
-                report.totalOFF = off;
-                report.totalL = al; // In HTML, totalL represents AL (Phép). Or wait, let me check the HTML.
-                report.totalKP = kp;
-                report.status = (hc + off + l >= 22) ? 'Đủ công' : 'Thiếu công';
-            }
+    if (this.selectedEmployee && this.employeeSchedule.length > 0) {
+        const { hc, off, l, kp, al } = this.calculateTotals(this.employeeSchedule);
+        const report = this.reports.find(r => r.id === this.selectedEmployee.id);
+        if (report) {
+            report.totalHC = hc;
+            report.totalOFF = off;
+            report.totalL = al; // In HTML, totalL represents AL (Phép). Or wait, let me check the HTML.
+            report.totalKP = kp;
+            report.status = (hc + off + l >= 22) ? 'Đủ công' : 'Thiếu công';
         }
     }
 
@@ -173,13 +160,6 @@ export class Reports implements OnInit {
   }
 
   getSymbolColor(type: string): string {
-    switch (type) {
-      case 'HC': return '#f4cccc';
-      case 'OFF': return '#d9d2e9';
-      case 'AL': return '#d9ead3';
-      case 'KP': return '#c9daf8';
-      case 'L': return '#fff2cc';
-      default: return '#ffffff';
-    }
+    return this.db.getSymbolColor(type);
   }
 }

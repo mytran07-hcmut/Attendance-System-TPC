@@ -58,22 +58,31 @@
 <p-dialog [header]="'Chi tiết lịch làm việc - ' + (selectedEmployee?.employee || '')"
     [(visible)]="displayEmployeeDetails" [modal]="true" [style]="{width: '70vw'}" [maximizable]="true">
     <div class="p-4">
-        <div class="flex justify-content-between align-items-center mb-4">
-            <div class="flex align-items-center">
-                <i class="pi pi-user mr-3 text-4xl text-primary"></i>
-                <div>
-                    <h3 class="m-0">{{selectedEmployee?.employee}}</h3>
-                    <span class="text-600">{{selectedEmployee?.department}}</span>
+        <div class="flex flex-column align-items-center bg-primary-50 border-round p-4 mb-4 shadow-1 relative">
+            <h4 class="m-0 mb-2 text-primary-900 text-2xl font-bold">Lịch cá nhân: {{ selectedEmployee?.employee }}</h4>
+            <div class="flex align-items-center gap-4 text-700">
+                <span class="font-medium"><i class="pi pi-briefcase mr-2"></i>{{ selectedEmployee?.title }}</span>
+                <span class="font-medium"><i class="pi pi-sitemap mr-2"></i>{{ selectedEmployee?.department }}</span>
+            </div>
+            <div class="mt-4 flex gap-3 text-lg font-bold">
+                <div class="bg-white px-3 py-2 border-round shadow-1 text-green-600">
+                    Tổng ngày công dự kiến: {{ selectedEmployee?.totalHC }}
                 </div>
             </div>
             
             <button pButton pRipple [label]="isEditingSchedule ? 'Hoàn tất' : 'Chỉnh sửa'" 
                     [icon]="isEditingSchedule ? 'pi pi-check' : 'pi pi-pencil'" 
-                    [class]="isEditingSchedule ? 'p-button-success' : 'p-button-outlined p-button-success'" 
+                    [class]="isEditingSchedule ? 'p-button-success absolute right-0 top-0 m-4' : 'p-button-outlined p-button-success absolute right-0 top-0 m-4'" 
                     (click)="isEditingSchedule = !isEditingSchedule"></button>
         </div>
 
-        <div class="w-full border-round overflow-hidden mt-4" style="border: 1px solid var(--surface-d)">
+        <div *ngIf="employeeSchedule.length === 0" class="flex flex-column align-items-center justify-content-center py-8 bg-surface-50 border-round mt-4">
+            <i class="pi pi-calendar-times text-500 mb-4" style="font-size: 4rem;"></i>
+            <h4 class="text-700 font-medium m-0 text-center">Chưa có lịch làm việc</h4>
+            <p class="text-500 mt-2">Nhân viên này chưa được phân bổ lịch cho tháng hiện tại.</p>
+        </div>
+
+        <div *ngIf="employeeSchedule.length > 0" class="w-full border-round overflow-hidden mt-4" style="border: 1px solid var(--surface-d)">
             <div class="flex bg-primary text-white p-3">
                 <div class="flex-1 text-center font-bold" *ngFor="let day of weekDays">{{day}}</div>
             </div>
