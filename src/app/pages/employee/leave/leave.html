@@ -10,7 +10,10 @@
 
         <div class="field mb-4">
             <label for="dateRange" class="font-medium">Thời gian nghỉ <span class="text-red-500">*</span></label>
-            <p-datepicker id="dateRange" [(ngModel)]="dateRange" selectionMode="range" [readonlyInput]="true" placeholder="Từ ngày - Đến ngày" styleClass="w-full"></p-datepicker>
+            <div class="flex gap-3">
+                <p-datepicker id="dateRange" [(ngModel)]="dateRange" selectionMode="range" [readonlyInput]="true" placeholder="Từ ngày - Đến ngày" styleClass="w-full flex-1"></p-datepicker>
+                <p-select id="shift" [options]="shiftOptions" [(ngModel)]="selectedShift" optionLabel="label" styleClass="w-full flex-1"></p-select>
+            </div>
         </div>
 
         <div class="field mb-5">

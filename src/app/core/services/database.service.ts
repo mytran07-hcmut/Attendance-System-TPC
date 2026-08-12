@@ -13,6 +13,16 @@ export interface Employee {
   status?: string;
   avatar?: string;
   permissions?: string[];
+  branchId?: string;
+}
+
+export interface Branch {
+  id: string;
+  name: string;
+  address: string;
+  lat: number;
+  lng: number;
+  radius: number;
 }
 
 export interface ScheduleDay {
@@ -45,8 +55,20 @@ export interface LeaveRequest {
   typeLabel: string;
   reason: string;
   dateRange: string[];
+  shift?: string;
   status: 'PENDING' | 'APPROVED' | 'REJECTED';
   requestDate: string;
+}
+
+export interface AttendanceRecord {
+  id: number;
+  employeeEmail: string;
+  date: string;
+  shift: string;
+  checkInTime: string | null;
+  checkOutTime: string | null;
+  location: { lat: number, lng: number, address: string } | null;
+  selfieUrl: string | null;
 }
 
 export interface ScheduleSymbol {
@@ -70,14 +92,22 @@ const DEFAULT_SYMBOLS: ScheduleSymbol[] = [
 })
 export class DatabaseService {
   private readonly EMPLOYEES_KEY = 'mock_db_employees_v2';
+  private readonly BRANCHES_KEY = 'mock_db_branches';
   private readonly COMPANY_SCHEDULE_KEY = 'mock_db_company_schedule';
   private readonly DEPT_SCHEDULES_KEY = 'mock_db_dept_schedules';
   private readonly DEPT_REQUESTS_KEY = 'mock_db_dept_requests';
   private readonly LEAVE_REQUESTS_KEY = 'mock_db_leave_requests';
+  private readonly ATTENDANCE_RECORDS_KEY = 'mock_db_attendance_records';
   private readonly SYMBOLS_KEY = 'mock_db_symbols';
   
   private symbolsSubject = new BehaviorSubject<ScheduleSymbol[]>([]);
   public symbols$ = this.symbolsSubject.asObservable();
+  
+  private attendanceRecordsSubject = new BehaviorSubject<AttendanceRecord[]>([]);
+  public attendanceRecords$ = this.attendanceRecordsSubject.asObservable();
+  
+  private branchesSubject = new BehaviorSubject<Branch[]>([]);
+  public branches$ = this.branchesSubject.asObservable();
   
   private employeesSubject = new BehaviorSubject<Employee[]>([]);
   public employees$ = this.employeesSubject.asObservable();
@@ -104,14 +134,78 @@ export class DatabaseService {
   private initDatabase() {
     const storedEmployees = localStorage.getItem(this.EMPLOYEES_KEY);
     if (storedEmployees) {
-      this.employeesSubject.next(JSON.parse(storedEmployees));
+      let parsed = JSON.parse(storedEmployees);
+      let migrated = false;
+      parsed = parsed.map((e: any) => {
+         if (!e.branchId) {
+            e.branchId = 'B_Q1';
+            migrated = true;
+         }
+         return e;
+      });
+      if (migrated) {
+          this.saveEmployees(parsed);
+      } else {
+          this.employeesSubject.next(parsed);
+      }
     } else {
       const initialData: Employee[] = EMPLOYEES_MOCK.map((emp: any) => ({
         ...emp,
         phone: emp.phone || '0901234567',
-        status: emp.status || 'Làm việc'
+        status: emp.status || 'Làm việc',
+        branchId: emp.branchId || 'B_Q1' // Default to Branch Q1
       }));
       this.saveEmployees(initialData);
+    }
+
+    const storedBranches = localStorage.getItem(this.BRANCHES_KEY);
+    if (storedBranches) {
+      this.branchesSubject.next(JSON.parse(storedBranches));
+    } else {
+      const initialBranches: Branch[] = [
+        {
+          id: 'B_Q1',
+          name: 'Chi nhánh Quận 1',
+          address: 'Bitexco Financial Tower, Quận 1, TP.HCM',
+          lat: 10.7716,
+          lng: 106.7044,
+          radius: 500
+        },
+        {
+          id: 'B_TD',
+          name: 'Chi nhánh Thủ Đức',
+          address: 'Vincom Thủ Đức, Võ Văn Ngân, TP.Thủ Đức',
+          lat: 10.8521,
+          lng: 106.7582,
+          radius: 500
+        },
+        {
+          id: 'B_Q7',
+          name: 'Chi nhánh Quận 7',
+          address: 'Crescent Mall, Quận 7, TP.HCM',
+          lat: 10.7308,
+          lng: 106.7208,
+          radius: 500
+        }
+      ];
+      this.saveBranches(initialBranches);
+    }
+    
+    // Sync B_Q1 to actual physical location for testing as user requested
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const branches = this.branchesSubject.getValue();
+          const q1 = branches.find(b => b.id === 'B_Q1');
+          if (q1) {
+            q1.lat = pos.coords.latitude;
+            q1.lng = pos.coords.longitude;
+            this.saveBranches(branches);
+          }
+        },
+        () => {}, // ignore errors
+        { enableHighAccuracy: false, timeout: 5000, maximumAge: 0 }
+      );
     }
 
     const storedCompanySchedule = localStorage.getItem(this.COMPANY_SCHEDULE_KEY);
@@ -146,6 +240,11 @@ export class DatabaseService {
       this.leaveRequestsSubject.next(JSON.parse(storedLeaveRequests));
     }
 
+    const storedAttendanceRecords = localStorage.getItem(this.ATTENDANCE_RECORDS_KEY);
+    if (storedAttendanceRecords) {
+      this.attendanceRecordsSubject.next(JSON.parse(storedAttendanceRecords));
+    }
+
     const storedPublishedMonths = localStorage.getItem('mock_db_published_months');
     if (storedPublishedMonths) {
       this.publishedMonthsSubject.next(JSON.parse(storedPublishedMonths));
@@ -174,6 +273,9 @@ export class DatabaseService {
       if (event.key === this.EMPLOYEES_KEY && event.newValue) {
         this.employeesSubject.next(JSON.parse(event.newValue));
       }
+      if (event.key === this.BRANCHES_KEY && event.newValue) {
+        this.branchesSubject.next(JSON.parse(event.newValue));
+      }
       if (event.key === this.COMPANY_SCHEDULE_KEY && event.newValue) {
         this.companyScheduleSubject.next(JSON.parse(event.newValue));
       }
@@ -185,6 +287,9 @@ export class DatabaseService {
       }
       if (event.key === this.LEAVE_REQUESTS_KEY && event.newValue) {
         this.leaveRequestsSubject.next(JSON.parse(event.newValue));
+      }
+      if (event.key === this.ATTENDANCE_RECORDS_KEY && event.newValue) {
+        this.attendanceRecordsSubject.next(JSON.parse(event.newValue));
       }
       if (event.key === this.SYMBOLS_KEY && event.newValue) {
         this.symbolsSubject.next(JSON.parse(event.newValue));
@@ -198,6 +303,15 @@ export class DatabaseService {
   private saveEmployees(employees: Employee[]) {
     localStorage.setItem(this.EMPLOYEES_KEY, JSON.stringify(employees));
     this.employeesSubject.next(employees);
+  }
+
+  private saveBranches(branches: Branch[]) {
+    localStorage.setItem(this.BRANCHES_KEY, JSON.stringify(branches));
+    this.branchesSubject.next(branches);
+  }
+  
+  getBranchesSync(): Branch[] {
+    return this.branchesSubject.getValue();
   }
 
   saveCompanySchedule(year: number, month: number, schedule: ScheduleDay[]) {
@@ -370,6 +484,35 @@ export class DatabaseService {
       current[index] = { ...current[index], status };
       localStorage.setItem(this.LEAVE_REQUESTS_KEY, JSON.stringify([...current]));
       this.leaveRequestsSubject.next([...current]);
+    }
+  }
+
+  // --- Attendance Record Methods ---
+
+  getAttendanceRecordsSync(): AttendanceRecord[] {
+    return this.attendanceRecordsSubject.getValue();
+  }
+
+  getAttendanceRecordsByEmployeeSync(email: string): AttendanceRecord[] {
+    return this.getAttendanceRecordsSync().filter(r => r.employeeEmail === email);
+  }
+
+  addAttendanceRecord(record: Omit<AttendanceRecord, 'id'>) {
+    const current = this.getAttendanceRecordsSync();
+    const nextId = current.length > 0 ? Math.max(...current.map(r => r.id)) + 1 : 1;
+    const newRecord: AttendanceRecord = { ...record, id: nextId };
+    const updated = [...current, newRecord];
+    localStorage.setItem(this.ATTENDANCE_RECORDS_KEY, JSON.stringify(updated));
+    this.attendanceRecordsSubject.next(updated);
+  }
+
+  updateAttendanceRecord(record: AttendanceRecord) {
+    const current = this.getAttendanceRecordsSync();
+    const index = current.findIndex(r => r.id === record.id);
+    if (index !== -1) {
+      current[index] = { ...record };
+      localStorage.setItem(this.ATTENDANCE_RECORDS_KEY, JSON.stringify([...current]));
+      this.attendanceRecordsSubject.next([...current]);
     }
   }
 

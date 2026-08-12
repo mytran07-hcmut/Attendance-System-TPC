@@ -28,7 +28,14 @@ export class Leave implements OnInit {
     { label: 'Nghỉ không lương (KP)', value: 'KP' }
   ];
 
+  shiftOptions = [
+    { label: 'Cả Ngày', value: 'FULL_DAY' },
+    { label: 'Ca Sáng', value: 'MORNING' },
+    { label: 'Ca Chiều', value: 'AFTERNOON' }
+  ];
+
   selectedType: any = null;
+  selectedShift: any = this.shiftOptions[0];
   dateRange: Date[] | undefined;
   reason: string = '';
 
@@ -75,6 +82,7 @@ export class Leave implements OnInit {
       typeLabel: this.selectedType.label,
       reason: this.reason,
       dateRange: dates,
+      shift: this.selectedShift.value,
       status: 'PENDING',
       requestDate: new Date().toISOString()
     });

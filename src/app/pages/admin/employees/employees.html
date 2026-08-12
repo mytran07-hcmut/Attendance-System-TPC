@@ -24,6 +24,7 @@
                         <th>Mã NV</th>
                         <th>Họ tên</th>
                         <th>Phòng ban</th>
+                        <th>Chi nhánh</th>
                         <th>Chức vụ</th>
                         <th>Trạng thái</th>
                     </tr>
@@ -33,6 +34,7 @@
                         <td class="font-semibold">{{ emp.code }}</td>
                         <td>{{ emp.fullName }}</td>
                         <td>{{ emp.department }}</td>
+                        <td>{{ getBranchName(emp.branchId) }}</td>
                         <td>{{ emp.title }}</td>
                         <td>
                             <p-tag [severity]="emp.status === 'Làm việc' ? 'success' : 'warning'" [value]="emp.status"></p-tag>
@@ -84,6 +86,13 @@
                     <span class="text-900 font-medium">{{ selectedEmployee.department }}</span>
                 </div>
             </div>
+            <div class="flex align-items-center">
+                <i class="pi pi-map-marker text-500 mr-3 text-xl"></i>
+                <div class="flex flex-column w-full">
+                    <span class="text-500 text-sm mb-1">Chi nhánh làm việc</span>
+                    <p-select [options]="branches" [(ngModel)]="selectedEmployee.branchId" optionLabel="name" optionValue="id" (onChange)="updateEmployeeBranch()" appendTo="body" styleClass="w-full"></p-select>
+                </div>
+            </div>
         </div>
 
         <!-- Phân quyền HR -->
@@ -130,6 +139,11 @@
         <div class="flex flex-column gap-2">
             <label for="department" class="font-semibold">Phòng ban <span class="text-red-500">*</span></label>
             <p-select id="department" [options]="departments.slice(1)" [(ngModel)]="newEmployee.department" optionLabel="label" optionValue="value" placeholder="Chọn phòng ban" appendTo="body" [style]="{'width':'100%'}"></p-select>
+        </div>
+
+        <div class="flex flex-column gap-2">
+            <label for="branch" class="font-semibold">Chi nhánh <span class="text-red-500">*</span></label>
+            <p-select id="branch" [options]="branches" [(ngModel)]="newEmployee.branchId" optionLabel="name" optionValue="id" placeholder="Chọn chi nhánh" appendTo="body" [style]="{'width':'100%'}"></p-select>
         </div>
 
         <div class="flex flex-column gap-2">
