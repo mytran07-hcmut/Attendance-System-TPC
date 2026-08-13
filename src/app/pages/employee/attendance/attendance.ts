@@ -226,7 +226,9 @@ export class Attendance implements OnInit, OnDestroy, AfterViewInit {
     
     if (me) {
         const req = this.db.getDepartmentRequestSync(me.department);
-        if (req && req.status === 'APPROVED') {
+        const isApproved = req && (req.status === 'APPROVED' || (req.approvedEmployees && req.approvedEmployees.includes(userEmail)));
+        
+        if (isApproved) {
             const deptSchedule = this.db.getDepartmentScheduleSync(me.department, year, month + 1);
             if (deptSchedule) {
                 if (deptSchedule.isUniform && deptSchedule.schedule) {
